@@ -21119,12 +21119,3 @@ mod FULL-MAUDE is
 endm
 
 *******************************************************************************
-
-loop init .
-
---- trace exclude FULL-MAUDE .
-
----- set show loop stats on .
----- set show loop timing on .
-set show advisories on .
-
