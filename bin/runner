@@ -1,3 +1,15 @@
 #!/bin/bash
 
-exec maude -no-prelude "$@"
+if [ $# -ne 1 ];
+then
+  echo "wrong number of arguments"
+  exit 1
+fi
+
+scriptdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+testname="$1"
+testpath="$scriptdir/../test/$testname"
+for file in $(ls "$testpath");
+do
+  exec maude -no-banner -no-wrap -no-prelude "$testpath/$file"
+done

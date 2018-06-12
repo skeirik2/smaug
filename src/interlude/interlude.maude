@@ -1,0 +1,79 @@
+--- file: interlude.maude
+--- reqs: prelude.maude
+--- note: a value-added prelude; the interlude is divided into several sections
+--- Section 1: Prelude META-LEVEL sort refinements
+--- Section 2: Prelude META-LEVEL projection/injection functions
+--- Section 3: Prelude META-LEVEL predicates/auxiliary functions
+--- Section 4: Prelude extended data-structures
+
+fmod META-LEVEL-REFINEMENT is
+  pr META-LEVEL .
+
+  --- 1.a - refine Substitution
+
+  --- 1.b - refine GTermList by GTerm and NeGTermList
+  sort GTerm NeGTermList .
+  subsort Term Context < GTerm < NeGTermList < GTermList .
+  subsort NeCTermList NeTermList < NeGTermList .
+  op _,_ : NeGTermList GTermList -> NeGTermList [ctor ditto] .
+  op _,_ : GTermList NeGTermList -> NeGTermList [ctor ditto] .
+  
+  --- 1.c - refine Ne/TypeList by Ne/Sort/Kind/List
+  sort NilTypeList NeSortList NeKindList SortList KindList .
+  subsort Sort < NeSortList < SortList .
+  subsort Kind < NeKindList < KindList .
+  subsort NeSortList NeKindList < NeTypeList .
+  subsort NilTypeList < SortList KindList < TypeList .
+  op nil : -> NilTypeList [ctor ditto] .
+  op __ : NilTypeList NilTypeList -> NilTypeList [ctor ditto] .
+  op __ : SortList SortList -> SortList [ctor ditto] .
+  op __ : NeSortList SortList -> NeSortList [ctor ditto] .
+  op __ : SortList NeSortList -> NeSortList [ctor ditto] .
+  op __ : KindList KindList -> KindList [ctor ditto] .
+  op __ : NeKindList KindList -> NeKindList [ctor ditto] .
+  op __ : KindList NeKindList -> NeKindList [ctor ditto] .
+
+  --- 1.d - refine TypeListSet by Sort/Kind/ListSet
+  sort EmptyTypeListSet SortListSet KindListSet .
+  subsort SortList SortSet < SortListSet .
+  subsort KindList KindSet < KindListSet .
+  subsort NilTypeList EmptyTypeSet < EmptyTypeListSet < SortListSet KindListSet < TypeListSet .
+  op _;_ : EmptyTypeListSet EmptyTypeListSet -> EmptyTypeListSet [ctor ditto] .
+  op _;_ : SortListSet SortListSet -> SortListSet [ctor ditto] .
+  op _;_ : KindListSet KindListSet -> KindListSet [ctor ditto] .
+
+  --- 1.e - refine OpDecl/Set into Sort/Kind/OpDecl/Set
+  sort EmptyOpDeclSet SortOpDecl KindOpDecl SortOpDeclSet KindOpDeclSet .
+  subsort SortOpDecl KindOpDecl < OpDecl .
+  subsort SortOpDecl < SortOpDeclSet .
+  subsort KindOpDecl < KindOpDeclSet .
+  subsort EmptyOpDeclSet < SortOpDeclSet KindOpDeclSet < OpDeclSet .
+  op (op_:_->_[_].) : Qid SortList Sort AttrSet -> SortOpDecl [ctor ditto] .
+  op (op_:_->_[_].) : Qid KindList Kind AttrSet -> KindOpDecl [ctor ditto] .
+  op none : -> EmptyOpDeclSet [ctor] .
+  op __ : EmptyOpDeclSet EmptyOpDeclSet -> EmptyOpDeclSet [ctor ditto] .
+  op __ : SortOpDeclSet SortOpDeclSet -> SortOpDeclSet [ctor ditto] .
+  op __ : KindOpDeclSet KindOpDeclSet -> KindOpDeclSet [ctor ditto] .
+
+  --- 1.f - refine Condition into Match/Memb/PureEq/Rew/Condition
+  sort NilCondition MatchCondition MembCondition PureEqCondition RewCondition .
+  subsort NilCondition < MatchCondition MembCondition PureEqCondition < EqCondition .
+  subsort NilCondition < RewCondition < Condition .
+  op nil : -> NilCondition [ctor ditto] .
+  op _=_ : Term Term -> PureEqCondition [ctor ditto] .
+  op _:_ : Term Sort -> MembCondition [ctor ditto] .
+  op _:=_ : Term Term -> MatchCondition [ctor ditto] .
+  op _=>_ : Term Term -> RewCondition [ctor ditto] .
+  op _/\_ : NilCondition NilCondition -> NilCondition [ctor ditto] .
+  op _/\_ : PureEqCondition PureEqCondition -> PureEqCondition [ctor ditto] .
+  op _/\_ : MembCondition MembCondition -> MembCondition [ctor ditto] .
+  op _/\_ : MatchCondition MatchCondition -> MatchCondition [ctor ditto] .
+  op _/\_ : RewCondition RewCondition -> RewCondition [ctor ditto] .
+
+  --- 1.g - refine MembAx/Set into PureEq/Cond/Uncond/MembAxSet
+  sort PureEqCondMembAx CondMembAx UncondMembAx PureEqCondMembAxSet CondMembAxSet .
+
+  --- 1.h - refine Equation/Set into PureEq/Cond/Uncond/EquationSet
+
+  --- 1.i - refine Rule/Set into PureEq/Cond/Uncond/RuleSet
+endfm

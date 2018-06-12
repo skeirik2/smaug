@@ -1,0 +1,12 @@
+load ../upstream/prelude.maude
+load ../upstream/full-maude.maude
+
+--- reset default output characteristics
+set show loop stats on   .
+set show loop timing on  .
+set show stats on        .
+set show timing on       .
+set show command on      .
+set show advisories on   .
+set show gc off          .
+set show breakdown off   .

@@ -1,0 +1,6 @@
+load ../init.maude
+load ../../src/interlude/interlude.maude
+
+select META-LEVEL-REFINEMENT .
+red T:Term :: GTerm .
+red [] :: GTerm .
