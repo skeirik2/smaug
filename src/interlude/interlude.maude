@@ -9,7 +9,28 @@
 fmod META-LEVEL-REFINEMENT is
   pr META-LEVEL .
 
-  --- 0 - refine QidSet
+  --- 0.a - refine QidList by Ne/Variable/Constant/TermQidList
+  sort VariableList ConstantList TermQidList .
+  sort NeVariableList NeConstantList NeTermQidList .
+  subsort Variable < NeVariableList < VariableList .
+  subsort Constant < NeConstantList < ConstantList .
+  subsort TermQid < NeTermQidList < TermQidList .
+  subsort NilTypeList < ConstantList VariableList .
+  subsort VariableList ConstantList < TermQidList .
+  subsort NeVariableList NeConstantList < NeTermQidList .
+  subsort TermQidList < QidList .
+  subsort NeTermQidList < NeQidList .
+  op __ : TermQidList TermQidList -> TermQidList [ctor ditto] .
+  op __ : NeTermQidList TermQidList -> NeTermQidList [ctor ditto] .
+  op __ : TermQidList NeTermQidList -> NeTermQidList [ctor ditto] .
+  op __ : ConstantList ConstantList -> ConstantList [ctor ditto] .
+  op __ : NeConstantList ConstantList -> NeConstantList [ctor ditto] .
+  op __ : ConstantList NeConstantList -> NeConstantList [ctor ditto] .
+  op __ : VariableList VariableList -> VariableList [ctor ditto] .
+  op __ : NeVariableList VariableList -> NeVariableList [ctor ditto] .
+  op __ : VariableList NeVariableList -> NeVariableList [ctor ditto] .
+
+  --- 0.b - refine QidSet by Ne/Variable/Constant/TermQidSet
   sort VariableSet ConstantSet TermQidSet .
   sort NeVariableSet NeConstantSet NeTermQidSet .
   subsort Variable < NeVariableSet < VariableSet .
