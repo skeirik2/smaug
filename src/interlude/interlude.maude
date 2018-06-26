@@ -71,9 +71,63 @@ fmod META-LEVEL-REFINEMENT is
   op _/\_ : RewCondition RewCondition -> RewCondition [ctor ditto] .
 
   --- 1.g - refine MembAx/Set into PureEq/Cond/Uncond/MembAxSet
-  sort PureEqCondMembAx CondMembAx UncondMembAx PureEqCondMembAxSet CondMembAxSet .
+  sort EmptyMembAxSet PureEqCondMembAx CondMembAx UncondMembAx PureEqCondMembAxSet CondMembAxSet UncondMembAxSet .
+  subsort PureEqCondMembAx < CondMembAx < MembAx .
+  subsort UncondMembAx < MembAx .
+  subsort PureEqCondMembAx < PureEqCondMembAxSet .
+  subsort CondMembAx < CondMembAxSet .
+  subsort UncondMembAx < UncondMembAxSet .
+  subsort EmptyMembAxSet < PureEqCondMembAxSet < CondMembAxSet < MembAxSet .
+  subsort EmptyMembAxSet < UncondMembAxSet < MembAxSet .
+  op none : -> EmptyMembAxSet [ctor ditto] .
+  op (mb_:_[_].) : Term Sort AttrSet -> UncondMembAx [ctor ditto] .
+  op (cmb_:_if_[_].) : Term Sort PureEqCondition AttrSet -> PureEqCondMembAx [ctor ditto] .
+  op (cmb_:_if_[_].) : Term Sort EqCondition AttrSet -> CondMembAx [ctor ditto] .
+  op __ : EmptyMembAxSet EmptyMembAxSet -> EmptyMembAxSet [ctor ditto] .
+  op __ : PureEqCondMembAxSet PureEqCondMembAxSet -> PureEqCondMembAxSet [ctor ditto] .
+  op __ : CondMembAxSet CondMembAxSet -> CondMembAxSet [ctor ditto] .
+  op __ : UncondMembAxSet UncondMembAxSet -> UncondMembAxSet [ctor ditto] .
 
   --- 1.h - refine Equation/Set into PureEq/Cond/Uncond/EquationSet
+  sort EmptyEquationSet PureEqCondEquation CondEquation UncondEquation PureEqCondEquationSet CondEquationSet UncondEquationSet .
+  subsort PureEqCondEquation < CondEquation < Equation .
+  subsort UncondEquation < Equation .
+  subsort PureEqCondEquation < PureEqCondEquationSet .
+  subsort CondEquation < CondEquationSet .
+  subsort UncondEquation < UncondEquationSet .
+  subsort EmptyEquationSet < PureEqCondEquationSet < CondEquationSet < EquationSet .
+  subsort EmptyEquationSet < UncondEquationSet < EquationSet .
+  op none : -> EmptyEquationSet [ctor ditto] .
+  op (eq_=_[_].) : Term Term AttrSet -> UncondEquation [ctor ditto] .
+  op (ceq_=_if_[_].) : Term Term PureEqCondition AttrSet -> PureEqCondEquation [ctor ditto] .
+  op (ceq_=_if_[_].) : Term Term EqCondition AttrSet -> CondEquation [ctor ditto] .
+  op __ : EmptyEquationSet EmptyEquationSet -> EmptyEquationSet [ctor ditto] .
+  op __ : PureEqCondEquationSet PureEqCondEquationSet -> PureEqCondEquationSet [ctor ditto] .
+  op __ : CondEquationSet CondEquationSet -> CondEquationSet [ctor ditto] .
+  op __ : UncondEquationSet UncondEquationSet -> UncondEquationSet [ctor ditto] .
 
-  --- 1.i - refine Rule/Set into PureEq/Cond/Uncond/RuleSet
+  --- 1.i - refine Rule/Set into PureEq/Rew/Cond/Uncond/RuleSet
+  sort EmptyRuleSet NilCondRule PureEqCondRule RewCondRule CondRule UncondRule .
+  sort NilCondRuleSet PureEqCondRuleSet RewCondRuleSet CondRuleSet UncondRuleSet .
+  subsort NilCondRule < PureEqCondRule RewCondRule < CondRule < Rule .
+  subsort UncondRule < Rule .
+  subsort NilCondRule < NilCondRuleSet .
+  subsort PureEqCondRule < PureEqCondRuleSet .
+  subsort RewCondRule < RewCondRuleSet .
+  subsort CondRule < CondRuleSet .
+  subsort UncondRule < UncondRuleSet .
+  subsort EmptyRuleSet < NilCondRuleSet < PureEqCondRuleSet RewCondRuleSet < CondRuleSet < RuleSet .
+  subsort EmptyRuleSet < UncondRuleSet < RuleSet .
+  op none : -> EmptyRuleSet [ctor ditto] .
+  op (rl_=>_[_].) : Term Term AttrSet -> UncondRule [ctor ditto] .
+  op (crl_=>_if_[_].) : Term Term NilCondition AttrSet -> NilCondRule [ctor ditto] .
+  op (crl_=>_if_[_].) : Term Term PureEqCondition AttrSet -> PureEqCondRule [ctor ditto] .
+  op (crl_=>_if_[_].) : Term Term RewCondition AttrSet -> RewCondRule [ctor ditto] .
+  op (crl_=>_if_[_].) : Term Term Condition AttrSet -> CondRule [ctor ditto] .
+  op __ : EmptyRuleSet EmptyRuleSet -> EmptyRuleSet [ctor ditto] .
+  op __ : NilCondRuleSet NilCondRuleSet -> NilCondRuleSet [ctor ditto] .
+  op __ : PureEqCondRuleSet PureEqCondRuleSet -> PureEqCondRuleSet [ctor ditto] .
+  op __ : RewCondRuleSet RewCondRuleSet -> RewCondRuleSet [ctor ditto] .
+  op __ : CondRuleSet CondRuleSet -> CondRuleSet [ctor ditto] .
+  op __ : UncondRuleSet UncondRuleSet -> UncondRuleSet [ctor ditto] .
 endfm
