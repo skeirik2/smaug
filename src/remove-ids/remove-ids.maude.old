@@ -1,0 +1,501 @@
+
+---view SubstitutionSet from TRIV to SUBSTITUTIONSET is
+---  sort Elt to SubstitutionSet .
+---endv
+
+fmod REMOVE-IDS-AUX is
+  inc MODULE-HANDLING  * (op addOps to addOpsSE, op addEqs to addEqsSE, op addSorts to addSortsSE) .
+  
+  op vars : TermList -> QidSet .
+  op varlist : TermList -> QidList .
+  op occurrences : Variable Term -> Nat .
+  op checkModule : Module -> Bool .
+  op attr : OpDeclSet Attr -> Bool .
+  ops assocWithoutComm specialAttr : OpDeclSet -> Bool .
+  op nonValidAttrs : OpDeclSet AttrSet -> Bool .
+  op singleVbleInLHSs : RuleSet -> Bool .
+  op singleVbleInLHSs : EquationSet -> Bool .
+
+  var  C : Constant .
+  var  M : Module .
+  var  F : Qid .
+  var  TL : TermList .
+  var  TpL : TypeList .
+  vars Tp Tp' Tp'' Tp''' : Type .
+  var  TpS : TypeSet .
+  var  At : Attr .
+  vars AtS AtS' : AttrSet .
+  vars ODS ODS' : OpDeclSet .
+  vars V V' : Variable .
+  var  VS : QidSet .
+  var  RlS : RuleSet .
+  var  EqS : EquationSet .
+  vars T LHS RHS : Term .
+  var  Cond : Condition .
+
+  eq vars(V) = V .
+  eq vars(C) = none .
+  eq vars(F[TL]) = vars(TL) .
+  eq vars(empty) = none .
+  eq vars((T, TL)) = vars(T) ; vars(TL) .
+  
+  eq varlist(V) = V .
+  eq varlist(C) = nil .
+  eq varlist(F[TL]) = varlist(TL) .
+  eq varlist(empty) = nil .
+  eq varlist((T, TL)) = varlist(T) varlist(TL) .
+
+  op occurrences : Variable TermList -> Nat .
+  eq occurrences(V, V') = if V == V' then 1 else 0 fi .
+  eq occurrences(V, C) = 0 .
+  eq occurrences(V, F[TL]) = occurrences(V, TL) .
+  eq occurrences(V, (T, TL)) = occurrences(V, T) + occurrences(V, TL) .
+
+  eq attr(op F : TpL -> Tp [owise AtS] . ODS, At AtS) = true .
+  eq attr(op F : TpL -> Tp [idem AtS] . ODS, idem) = true .
+  eq attr(op F : TpL -> Tp [iter AtS] . ODS, iter) = true .
+  eq attr(ODS, At) = false [owise] .
+  
+  eq nonValidAttrs(op F : TpL -> Tp [At AtS] . ODS, At AtS') = true .
+  eq nonValidAttrs(ODS, AtS) = false [owise] .
+  
+  ---- special attributes only allowed for constants
+  eq specialAttr(op F : TpL -> Tp [special(NEHL:NeHookList) AtS] . ODS) = TpL =/= nil .
+  eq specialAttr(ODS) = false [owise] .
+  
+  eq assocWithoutComm(op F : TpL -> Tp [assoc AtS] . ODS) 
+    = (not comm in AtS) or-else assocWithoutComm(ODS) .
+  eq assocWithoutComm(ODS) = false [owise] .
+  
+  eq singleVbleInLHSs(rl V => RHS [AtS] . RlS) = true .
+  eq singleVbleInLHSs(crl V => RHS if Cond [AtS] . RlS) = true .
+  eq singleVbleInLHSs(RlS) = false [owise] .
+
+  eq singleVbleInLHSs(eq V = RHS [AtS] . EqS) = true .
+  eq singleVbleInLHSs(ceq V = RHS if Cond [AtS] . EqS) = true .
+  eq singleVbleInLHSs(EqS) = false [owise] .
+  
+  op isRegular : EquationSet -> Bool .
+  op isRegular : RuleSet -> Bool .
+  eq isRegular(eq LHS = RHS [AtS] . EqS) = (vars(LHS) == vars(RHS)) and isRegular(EqS) .
+  eq isRegular(ceq LHS = RHS if Cond [AtS] . EqS) = (vars(LHS) == vars(RHS)) and isRegular(EqS) .
+  eq isRegular(rl LHS => RHS [AtS] . RlS) = (vars(LHS) == vars(RHS)) and isRegular(RlS) .
+  eq isRegular(crl LHS => RHS if Cond [AtS] . RlS) = (vars(LHS) == vars(RHS)) and isRegular(RlS) .
+
+  ---- We say that a term l is linear iff all its variables appear only once in it. 
+  
+  op linear : Term -> Bool .
+  eq linear(T) = | vars(T) | == size(varlist(T)) .
+
+  ---- We say that a term l is C-nonlinear iff all its variables are c-nonlinear. 
+  ---- A variable x : s in vars(l) is c-nonlinear if it is nonlinear in l and
+  ---- there is a \Sigma-subterm t with ls[t]_B <= s with a position p such that 
+  ---- t|_p = f(u,v) with B_f = {C_f}. 
+  
+  op c-nonlinear : Qid Term Module -> Bool . ---- the variable (1st arg.) is c-linear in the term (2nd arg.)  
+  op c-nonlinear : Term Module -> Bool . ---- no repeated variables and all such varaibles are c-linear 
+  op c-nonlinearAux : QidSet Module -> Bool .
+  op c-nonlinearAux : Type Module -> Bool .
+  op c-nonlinearAux : Type TypeSet OpDeclSet OpDeclSet Module -> Bool .
+  op c-nonlinearAux2 : TypeList TypeSet OpDeclSet Module -> Bool .
+  
+  eq c-nonlinear(V, T, M) = occurrences(V, T) > 1 and-then c-nonlinearAux(V, M) .
+  
+  eq c-nonlinear(T, M) = not linear(T) and-then c-nonlinearAux(vars(T), M) .
+  
+  eq c-nonlinearAux(V ; VS, M) = c-nonlinearAux(getType(V), M) or-else c-nonlinearAux(VS, M) .
+  eq c-nonlinearAux(none, M) = false .
+  
+  eq c-nonlinearAux(Tp, M) = c-nonlinearAux(Tp, Tp, getOps(M), getOps(M), M) .
+  
+  ceq c-nonlinearAux(Tp, TpS, op F : Tp' Tp'' -> Tp''' [comm AtS] . ODS, ODS', M)
+    = true 
+    if sortLeq(M, Tp''', Tp) .  
+  eq c-nonlinearAux(Tp, TpS, op F : TpL -> Tp' [AtS] . ODS, ODS', M)  
+    = if not comm in AtS and-then (not Tp in TpS and-then sortLeq(M, Tp', Tp)) 
+      then c-nonlinearAux2(TpL, TpS, ODS', M) ---- all the sorts in that declarations have already been checked
+      else c-nonlinearAux(Tp, TpS, ODS, ODS', M)
+      fi
+    [owise] .
+  eq c-nonlinearAux(Tp, TpS, none, ODS, M)  
+    = false .
+     
+  eq c-nonlinearAux2(Tp TpL, TpS, ODS, M)
+    = if Tp in TpS 
+      then false
+      else c-nonlinearAux(Tp, Tp ; TpS, ODS, ODS, M)
+      fi 
+      or-else c-nonlinearAux2(TpL, TpS, ODS, M) .
+  eq c-nonlinearAux2(nil, TpS, ODS, M) = false .
+endfm
+
+fmod REMOVE-IDS is 
+  inc REMOVE-IDS-AUX .
+  inc META-NARROWING-SEARCH * (op addOps to addOpsSE, op addEqs to addEqsSE, op addSorts to addSortsSE) .
+ --- inc UNIT .
+  pr CONVERSION .
+  pr 2TUPLE{Module,Module}
+      * (op `(_`,_`) : Module Module -> Tuple{Module, Module} to <_;_>) .
+  pr 2TUPLE{SubstitutionSet, Nat} 
+      * (op `(_`,_`) : SubstitutionSet Nat -> Tuple{SubstitutionSet, Nat} to <_;_>, 
+         op p1_ : Tuple{SubstitutionSet, Nat} -> SubstitutionSet to getSubst, 
+         op p2_ : Tuple{SubstitutionSet, Nat} -> Nat to getIndex) .
+
+  sort IdsToRemove .
+  ops all non-handled : -> IdsToRemove .
+  
+  vars V W : Variable .
+  var  C : Constant .
+  vars M M' M'' : Module .
+  var  N : Nat .
+  vars T T' T'' LHS RHS : Term .
+  var  F : Qid .
+  var  TL : TermList .
+  var  AtS : AttrSet .
+  var  VFS : VariantFourSet .
+  var  VtS : VariantTripleSet .
+  vars Tp Tp' Tp'' : Type .
+  var  TpL : TypeList .
+  var  Rl : Rule .
+  var  RlS : RuleSet .
+  var  Eq : Equation .
+  var  EqS : EquationSet .
+  var  ODS : OpDeclSet .
+  var  Cond : Condition .
+  var  S : Sort .
+  var  VS : QidSet .
+  vars Subst Subst' : Substitution .
+  vars SubstS SubstS' : SubstitutionSet .
+  var  H : Header .
+  var  SS : SortSet .
+  var  SSDS : SubsortDeclSet .
+  vars OPDS OPDS' : OpDeclSet .
+  var  MAS : MembAxSet .
+  var  IL : ImportList .
+
+  ------------------------------------------------------------------------------
+  ---- Given a module \mathcal{R} = (\Sigma, E, R) 
+  ---- removeIds(\mathcal{R}) = removeIds((\widehat{\Sigma}, B, \widetilde{U}), R)
+  ---- where 
+  ---- - \widehat{\Sigma} is obtained by 
+  ----   - adding to $\Sigma$ a fresh new sort [Tuple] and 
+  ----   - a tupling operator <_,...,_> : [s] [s_1] ... [s_n] -> [Tuple]
+  ----     for each rule l -> r if u_1 -> v_1 /\ ... /\ u_n -> v_n in R, 
+  ----     where l has sort s and v_i has sort s_i, 1 <= i <= n,
+  ---- - B_f = E_f \cap {A_f, C_f} 
+  ---- - U_f = E_f \cap {LU_f, RU_f}, 
+  ----   with LU_f and RU_f rewrite rules f(e,x) -> x and f(x,e) -> x, and 
+  ----   where \widetilde{U} is the B-coherence completion of U, 
+  ----   which is described as \widetilde{U} = \bigcup_{f:[s_1]...[s_n] -> [s] \in \Sigma} \widetilde{U}_f.
+  ----   If A_f \not \in B_f, or A_f, C_f \in B_f, then \widetilde{U}_f = U_f.
+  ----   Otherwise, if A_f \in B_f, but C_f \not \in B_f, then, 
+  ----     if LU_f \in U_f, then we add the rule f(x,f(e,y)) -> f(x,y) and 
+  ----     if RU_f \in U_f, then we add the rule f(f(x,e'),y) -> f(x,y).
+  ---- makeIdsModule computes (\widehat{\Sigma}, B, \widetilde{U})
+  ------------------------------------------------------------------------------
+  
+  sort VariantProcedure .
+  ops narrowing ad-hoc built-in : -> VariantProcedure .
+  var VP : VariantProcedure .
+----  sort IdsToRemove .                             ---- moved to COMMAND-PROCESSING
+----  ops all non-handled : -> IdsToRemove .         ---- moved to COMMAND-PROCESSING
+  var Which : IdsToRemove .  
+  
+  op removeIds : Module IdsToRemove ~> Module .  ---- moved to COMMAND-PROCESSING
+  ---- given a module returns an equivalent module without ids but with variants of eqs and rls
+  ---- the second argument may be either all (all id attributes are removed) or non-handled (only those not directly handled by Maude's unification are removed)
+  op removeIds : Module IdsToRemove VariantProcedure ~> Module . 
+  ---- given a module returns an equivalent module without ids but with variants 
+  ---- of eqs and rls using the specified procedure for calculating variants
+  op getVariants : Module Module RuleSet VariantProcedure -> RuleSet .
+  ---- given a (\widehat{\Sigma}, B, \widetilde{U}) returns the variants of the given set of rules
+  ---- It takes the modules without and with ids. The module with id attributes is used to normalize.
+  op getVariants : Module Module EquationSet VariantProcedure -> EquationSet .
+  ---- given a (\widehat{\Sigma}, B, \widetilde{U}) returns the variants of the given set of equations
+  ---- It takes the modules without and with ids. The module with id attributes is used to normalize.
+  op getVariants# : Module Module Term VariantProcedure -> VariantTripleSet .
+  ---- given a (\widehat{\Sigma}, B, \widetilde{U}) returns the variants of a term (a tuple)
+  op getRlVariants : Module VariantTripleSet Term Condition AttrSet -> RuleSet .
+  ---- given the variants of a tuple < LHS, target terms in condition >, a RHS, a condition, and an attribute set,
+  ---- it constructs the corresponding variant rules
+  op getEqVariants : Module VariantTripleSet Term Condition AttrSet -> EquationSet .
+  ---- given the variants of a tuple < LHS, target terms in condition >, a RHS, a condition, and an attribute set,
+  ---- it constructs the corresponding variant equations
+  
+  eq removeIds(M, Which) ---- Which may be either all or non-handled 
+    = if nonValidAttrs(getOps(M), owise idem) ----  iter
+      then unitError('The 'module 'uses 'non-supported 'attributes '`(owise 'or 'idem`). '\n)
+      else if singleVbleInLHSs(getRls(M))
+           then unitError('The 'module 'contains 'rules 'with 'single 'variables 'in 'their 'left-hand 'sides. '\n)
+           else if singleVbleInLHSs(getEqs(M))
+                then unitError('The 'module 'contains 'equations 'with 'single 'variables 'in 'their 'left-hand 'sides. '\n)
+                else if assocWithoutComm(getOps(M))
+                     then moreGeneralEqs(moreGeneralRls(removeIds(M, Which, ad-hoc))) 
+                     else moreGeneralEqs(moreGeneralRls(removeIds(M, Which, narrowing))) ---- built-in
+                     fi 
+                fi
+           fi
+      fi .
+  
+  eq removeIds(M, Which, VP) 
+    ---- the narrowing based getVariant function requires a module with id attributes turned into eqs 
+    ---- and sort Tuple and tuple operators in; the ad-hoc getVariant (FroCos th 2) only needs the 
+    ---- tuple declarations.
+    = setRls(
+        addEqs(
+          getVariants(makeIdsTuplingModule(M, Which), addTupling(M, M), getEqs(M), VP),
+          makeIdsModule(M, Which)),
+        getVariants(makeIdsTuplingModule(M, Which), addTupling(M, M), getRls(M), VP)) .
+  
+  eq getVariants(M, M', Rl RlS, VP) 
+    = getRlVariants(M', getVariants#(M, M', makeTuple(lhs(Rl), cond(Rl)), VP), rhs(Rl), cond(Rl), atts(Rl)) 
+      getVariants(M, M', RlS, VP) .
+  eq getVariants(M, M', (none).RuleSet, VP) = none .
+    
+  eq getVariants(M, M', Eq EqS, VP) 
+    = getEqVariants(M', getVariants#(M, M', makeTuple(lhs(Eq), cond(Eq)), VP), rhs(Eq), cond(Eq), atts(Eq)) 
+      getVariants(M, M', EqS, VP) .
+  eq getVariants(M, M', (none).EquationSet, VP) = none .
+    
+  eq getVariants#(M, M', T, narrowing) = makeVariantSet(getVariants(M, T, 1, irreducible ACUUnify minimal-unifiers)) .
+  
+  op makeVariantSet : VariantFourSet -> VariantTripleSet .
+  eq makeVariantSet({T, Subst, Subst', N} | VFS) = {T, Subst, N, none, false} | makeVariantSet(VFS) .
+  eq makeVariantSet(empty) = empty .
+  
+  eq getRlVariants(M, ({'@<@_@>@[T], Subst, N, P:Parent, B:Bool} | VtS), T', nil, AtS)
+    = (rl getTerm(metaNormalize(M, T)) 
+         => getTerm(metaNormalize(M, _<<_(T', Subst))) [AtS] .)
+      getRlVariants(M, VtS, T', nil, AtS) .
+  eq getRlVariants(M, ({F[T, TL], Subst, N, P:Parent, B:Bool} | VtS), T', Cond, AtS)
+    = (crl getTerm(metaNormalize(M, T)) 
+         => getTerm(metaNormalize(M, _<<_(T', Subst))) 
+         if makeCond(TL, Cond, Subst) [AtS] .)
+      getRlVariants(M, VtS, T', Cond, AtS) .
+  eq getRlVariants(M, empty, T', Cond, AtS) = none .
+
+  eq getEqVariants(M, ({'@<@_@>@[T], Subst, N, P:Parent, B:Bool} | VtS), T', nil, AtS)
+    = (eq getTerm(metaNormalize(M, T)) 
+         = getTerm(metaNormalize(M, _<<_(T', Subst))) [AtS] .)
+      getEqVariants(M, VtS, T', nil, AtS) .
+  eq getEqVariants(M, ({F[T, TL], Subst, N, P:Parent, B:Bool} | VtS), T', Cond, AtS)
+    = (ceq getTerm(metaNormalize(M, T)) 
+         = getTerm(metaNormalize(M, _<<_(T', Subst))) 
+         if makeCond(TL, Cond, Subst) [AtS] .)
+      getEqVariants(M, VtS, T', Cond, AtS) .
+  eq getEqVariants(M, empty, T', Cond, AtS) = none .
+
+  ------------------------------------------------------------------------------
+
+  op makeTuple : Term Condition -> Term .
+  op tupleTermList : Condition -> TermList .
+  eq makeTuple(T, Cond) 
+    = if Cond == nil
+      then qid("@<@_@>@")[T]
+      else qid("@<@_" + tupleId(Cond) + "@>@")[T, tupleTermList(Cond)]
+      fi .
+  eq tupleTermList(T' => T'' /\ Cond) = (T'', tupleTermList(Cond)) . 
+  eq tupleTermList(T' = T'' /\ Cond) = tupleTermList(Cond) . 
+  eq tupleTermList(T' : S /\ Cond) = tupleTermList(Cond) . 
+  eq tupleTermList(T' := T'' /\ Cond) = (T', tupleTermList(Cond)) . 
+  eq tupleTermList(nil) = empty .
+
+  op makeCond : TermList Condition Substitution -> Condition .
+  eq makeCond((T, TL), T' => T'' /\ Cond, Subst)
+    = (T' << Subst) => T /\ makeCond(TL, Cond, Subst) .
+  eq makeCond((T, TL), T' := T'' /\ Cond, Subst)
+    = T := (T'' << Subst) /\ makeCond(TL, Cond, Subst) .
+  eq makeCond(TL, T' = T'' /\ Cond, Subst)
+    = (T' << Subst) = (T'' << Subst) /\ makeCond(TL, Cond, Subst) .
+  eq makeCond(TL, T' : S /\ Cond, Subst)
+    = (T' << Subst) : S /\ makeCond(TL, Cond, Subst) .
+  eq makeCond(empty, nil, Subst) = nil .
+    
+  ------------------------------------------------------------------------------
+  ---- makeIdsTuplingModule((\Sigma, E, R)) computes (\widehat{\Sigma}, B, \widetilde{U})
+  ------------------------------------------------------------------------------
+  op makeIdsTuplingModule : Module IdsToRemove -> Module .
+  op makeIdsModule : Module IdsToRemove -> Module .
+  op addTupling : Module Module -> Module . 
+  ---- addTupling is called after makeIdsModule, which removes the eqs in it
+  ---- the first module is the oiginal one, with the original eqs and rls
+  
+  eq makeIdsTuplingModule(M, Which) = addTupling(M, makeIdsModule(M, Which)) .
+  
+  eq makeIdsModule(M, Which) 
+    = setEqs(
+        setOps(
+          setRls(M, none),
+          removeIds(getOps(M), Which)),
+        idEqs(M, getOps(M), Which)) .
+  
+  eq addTupling(M, M') 
+    = addOps(
+        tuplingOps(M, getEqs(M), getRls(M)),
+        addSorts('Tuple, M')) .
+  
+  op idEqs : Module OpDeclSet IdsToRemove -> EquationSet .
+  ---- the 3rd arguments indicates whether all the id attributes are to be removed (all), or only those not handled by the Maude unification algorithm (non-handled)
+  eq idEqs(M, op F : Tp Tp' -> Tp'' [left-id(T) AtS] . ODS, Which)
+    = (eq F[T, qid("X:" + string(type2qid(getKind(M, Tp))))] = qid("X:" + string(type2qid(getKind(M, Tp)))) [variant] .) ---- label('lIdEq1) 
+      if assoc in AtS and not comm in AtS 
+      then (eq F[qid("X:" + string(type2qid(getKind(M, Tp)))), F[T, qid("Y:" + string(type2qid(getKind(M, Tp))))]] 
+              = F[qid("X:" + string(type2qid(getKind(M, Tp)))), qid("Y:" + string(type2qid(getKind(M, Tp))))] 
+              [variant] .) ---- label('lIdEq2) 
+      else none 
+      fi
+      idEqs(M, ODS, Which) . 
+  eq idEqs(M, op F : Tp Tp' -> Tp'' [right-id(T) AtS] . ODS, Which)
+    = (eq F[qid("X:" + string(type2qid(getKind(M, Tp)))), T] = qid("X:" + string(type2qid(getKind(M, Tp)))) [variant] .) ---- label('rIdEq1) 
+      if assoc in AtS and not comm in AtS 
+      then (eq F[F[qid("X:" + string(type2qid(getKind(M, Tp)))), T], qid("Y:" + string(type2qid(getKind(M, Tp))))] 
+              = F[qid("X:" + string(type2qid(getKind(M, Tp)))), qid("Y:" + string(type2qid(getKind(M, Tp))))] 
+              [variant] .) ---- label('rIdEq2) 
+      else none 
+      fi
+      idEqs(M, ODS, Which) . 
+  eq idEqs(M, op F : Tp Tp' -> Tp'' [id(T) AtS] . ODS, all)
+    = if comm in AtS
+      then (eq F[T, qid("X:" + string(type2qid(getKind(M, Tp))))] = qid("X:" + string(type2qid(getKind(M, Tp)))) [variant] .) ---- label('idEq1) 
+      else (eq F[qid("X:" + string(type2qid(getKind(M, Tp)))), T] = qid("X:" + string(type2qid(getKind(M, Tp)))) [variant] .) ---- label('idEq2) 
+           (eq F[T, qid("X:" + string(type2qid(getKind(M, Tp))))] = qid("X:" + string(type2qid(getKind(M, Tp)))) [variant] .) ---- label('idEq3) 
+      fi 
+      if assoc in AtS and not comm in AtS 
+      then (eq F[qid("X:" + string(type2qid(getKind(M, Tp)))), F[T, qid("Y:" + string(type2qid(getKind(M, Tp))))]] 
+              = F[qid("X:" + string(type2qid(getKind(M, Tp)))), qid("Y:" + string(type2qid(getKind(M, Tp))))] 
+              [variant] .)
+           (eq F[F[qid("X:" + string(type2qid(getKind(M, Tp)))), T], qid("Y:" + string(type2qid(getKind(M, Tp))))] 
+              = F[qid("X:" + string(type2qid(getKind(M, Tp)))), qid("Y:" + string(type2qid(getKind(M, Tp))))] 
+              [variant] .)
+      else none 
+      fi
+      idEqs(M, ODS, all) . 
+  eq idEqs(M, op F : Tp Tp' -> Tp'' [id(T) AtS] . ODS, non-handled)
+    ---- modified on Jan 13th, 2011
+    ---- The ACU case is now handled, the id attributes are left if also AC
+    = if assoc in AtS and comm in AtS 
+      then none 
+      else if comm in AtS
+           then (eq F[T, qid("X:" + string(type2qid(getKind(M, Tp))))] = qid("X:" + string(type2qid(getKind(M, Tp)))) [variant] .) ---- label('idEq1) 
+           else (eq F[qid("X:" + string(type2qid(getKind(M, Tp)))), T] = qid("X:" + string(type2qid(getKind(M, Tp)))) [variant] .) ---- label('idEq2) 
+                (eq F[T, qid("X:" + string(type2qid(getKind(M, Tp))))] = qid("X:" + string(type2qid(getKind(M, Tp)))) [variant] .) ---- label('idEq3) 
+           fi 
+           if assoc in AtS and not comm in AtS 
+           then (eq F[qid("X:" + string(type2qid(getKind(M, Tp)))), F[T, qid("Y:" + string(type2qid(getKind(M, Tp))))]] 
+                   = F[qid("X:" + string(type2qid(getKind(M, Tp)))), qid("Y:" + string(type2qid(getKind(M, Tp))))] 
+                   [variant] .)
+                (eq F[F[qid("X:" + string(type2qid(getKind(M, Tp)))), T], qid("Y:" + string(type2qid(getKind(M, Tp))))] 
+                   = F[qid("X:" + string(type2qid(getKind(M, Tp)))), qid("Y:" + string(type2qid(getKind(M, Tp))))] 
+                   [variant] .)
+           else none 
+           fi
+      fi
+      idEqs(M, ODS, non-handled) . 
+  eq idEqs(M, ODS, Which) = none [owise] . 
+
+  op removeIds : OpDeclSet IdsToRemove -> OpDeclSet .
+  eq removeIds(op F : TpL -> Tp [id(T) AtS] . ODS, all)
+    = removeIds(op F : TpL -> Tp [AtS] . ODS, all) .
+ ceq removeIds(op F : TpL -> Tp [id(T) AtS] . ODS, non-handled)
+    = removeIds(op F : TpL -> Tp [AtS] . ODS, non-handled) 
+    if not (assoc in AtS and comm in AtS) .
+  eq removeIds(op F : TpL -> Tp [left-id(T) AtS] . ODS, Which)
+    = removeIds(op F : TpL -> Tp [AtS] . ODS, Which) .
+  eq removeIds(op F : TpL -> Tp [right-id(T) AtS] . ODS, Which)
+    = removeIds(op F : TpL -> Tp [AtS] . ODS, Which) .
+  eq removeIds(ODS, Which) = ODS [owise] .
+  
+  op tuplingOps : Module EquationSet RuleSet -> OpDeclSet .
+  op tuplingOps : Module EquationSet -> OpDeclSet .
+  op tuplingOps : Module RuleSet -> OpDeclSet .
+  eq tuplingOps(M, EqS, RlS) = tuplingOps(M, EqS) tuplingOps(M, RlS) .
+  eq tuplingOps(M, eq LHS = RHS [AtS] . EqS)
+    = (op qid("@<@_@>@") : getKind(M, leastSort(M, LHS)) -> '`[Tuple`] [none] .)
+      tuplingOps(M, EqS) .
+  eq tuplingOps(M, ceq LHS = RHS if Cond [AtS] . EqS)
+    = (op qid("@<@_" + tupleId(Cond) + "@>@") : getKind(M, leastSort(M, LHS)) arityCond(M, Cond) -> '`[Tuple`] [none] .)
+      tuplingOps(M, EqS) .
+  eq tuplingOps(M, (none).EquationSet) = none .
+  eq tuplingOps(M, rl LHS => RHS [AtS] . RlS)
+    = (op qid("@<@_@>@") : getKind(M, leastSort(M, LHS)) -> '`[Tuple`] [none] .)
+      tuplingOps(M, RlS) .
+  eq tuplingOps(M, crl LHS => RHS if Cond [AtS] . RlS)
+    = (op qid("@<@_" + tupleId(Cond) + "@>@") : getKind(M, leastSort(M, LHS)) arityCond(M, Cond) -> '`[Tuple`] [none] .)
+      tuplingOps(M, RlS) .
+  eq tuplingOps(M, (none).RuleSet) = none .
+  
+  op arityCond : Module Condition -> TypeList .
+  eq arityCond(M, T => T' /\ Cond) = getKind(M, leastSort(M, T')) arityCond(M, Cond) .
+  eq arityCond(M, T := T' /\ Cond) = getKind(M, leastSort(M, T)) arityCond(M, Cond) .
+  eq arityCond(M, T = T' /\ Cond) = arityCond(M, Cond) .
+  eq arityCond(M, T : S /\ Cond) = arityCond(M, Cond) .
+  eq arityCond(M, nil) = nil .
+  
+  op tupleId : Condition -> String .
+  eq tupleId(T => T' /\ Cond) = ",_" + tupleId(Cond) .
+  eq tupleId(T := T' /\ Cond) = ",_" + tupleId(Cond) .
+  eq tupleId(T = T' /\ Cond) = tupleId(Cond) .
+  eq tupleId(T : S /\ Cond) = tupleId(Cond) .
+  eq tupleId(Cond) = "" .
+
+  ------------------------------------------------------------------------------
+  ---- See Th. 2, FroCos'09
+  ---- TO DO: it doesn't give the minimal set of variants
+  
+  op getVariants : Module Term SubstitutionSet -> VariantTripleSet .
+  op getSubstitutions : Module QidSet OpDeclSet Nat -> Tuple{SubstitutionSet,Nat} .
+  op getSubstitutions1 : Module Variable OpDeclSet Nat -> Tuple{SubstitutionSet,Nat} .
+  op combineSubsts : SubstitutionSet SubstitutionSet -> SubstitutionSet .
+  
+  eq getVariants#(M, M', T, ad-hoc) 
+    = getVariants(M', T, getSubst(getSubstitutions(M', vars(T), getOps(M'), 0))) .
+
+  eq getVariants(M, T, Subst | SubstS)
+    = {getTerm(metaNormalize(M, T << Subst)), Subst, 0, none, false} | getVariants(M, T, SubstS) .
+  eq getVariants(M, T, empty) = {T, none, 0, none, false} .
+  
+  eq getSubstitutions(M, V ; VS, ODS, N)
+    = < combineSubsts(
+          getSubst(getSubstitutions1(M, V, ODS, N)), 
+          getSubst(getSubstitutions(M, VS, ODS, getIndex(getSubstitutions1(M, V, ODS, N))))) ;
+        getIndex(getSubstitutions(M, VS, ODS, getIndex(getSubstitutions1(M, V, ODS, N)))) > .
+  eq getSubstitutions(M, none, ODS, N) = < empty ; N > .
+    
+  eq combineSubsts(Subst | SubstS, Subst' | SubstS')  
+    = (Subst ; Subst') | combineSubsts(SubstS, Subst' | SubstS') | combineSubsts(Subst, SubstS') .
+  eq combineSubsts(SubstS, empty) = SubstS .  
+  eq combineSubsts(empty, SubstS) = SubstS .  
+  
+  ceq getSubstitutions1(M, V, op F : TpL -> Tp [id(T) AtS] . ODS, N) 
+    = < (V <- T) |
+        if (assoc in AtS and-then not comm in AtS)
+           and-then sortLeq(M, leastSort(M, F[qid("X@" + string(N, 10) + ":" + string(Tp)), T]), getType(V))
+        then (V <- (F[qid("X@" + string(N, 10) + ":" + string(Tp)), T])) 
+           | (V <- (F[T, qid("X@" + string(s N, 10) + ":" + string(Tp))]))
+        else empty
+        fi |
+        getSubst(getSubstitutions1(M, V, ODS, s s N)) ;
+        getIndex(getSubstitutions1(M, V, ODS, s s N)) > 
+    if sortLeq(M, leastSort(M, T), getType(V)) . ----  ls[e] <= s ls[f(y,e)] <= s
+  ceq getSubstitutions1(M, V, op F : TpL -> Tp [right-id(T) AtS] . ODS, N) 
+    = < (V <- T) |
+        if (assoc in AtS and-then not comm in AtS)
+           and-then sortLeq(M, leastSort(M, F[qid("X@" + string(N, 10) + ":" + string(Tp)), T]), getType(V))
+        then (V <- F[T, qid("X@" + string(N, 10) + ":" + string(Tp))])
+        else empty
+        fi |
+        getSubst(getSubstitutions1(M, V, ODS, s s N)) ;
+        getIndex(getSubstitutions1(M, V, ODS, s s N)) > 
+    if sortLeq(M, leastSort(M, T), getType(V)) . ----  ls[e] <= s ls[f(y,e)] <= s
+  ceq getSubstitutions1(M, V, op F : TpL -> Tp [left-id(T) AtS] . ODS, N) 
+    = < (V <- T) |
+        if (assoc in AtS and-then not comm in AtS)
+           and-then sortLeq(M, leastSort(M, F[qid("X@" + string(N, 10) + ":" + string(Tp)), T]), getType(V))
+        then (V <- F[qid("X@" + string(s N, 10) + ":" + string(Tp)), T])
+        else empty
+        fi |
+        getSubst(getSubstitutions1(M, V, ODS, s s N)) ;
+        getIndex(getSubstitutions1(M, V, ODS, s s N)) > 
+    if sortLeq(M, leastSort(M, T), getType(V)) . ----  ls[e] <= s ls[f(y,e)] <= s
+  eq getSubstitutions1(M, V, ODS, N) = < empty ; N > [owise] . 
+endfm
