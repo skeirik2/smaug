@@ -9,7 +9,42 @@
 fmod META-LEVEL-REFINEMENT is
   pr META-LEVEL .
 
+  --- 0 - refine QidSet
+  sort VariableSet ConstantSet TermQidSet .
+  sort NeVariableSet NeConstantSet NeTermQidSet .
+  subsort Variable < NeVariableSet < VariableSet .
+  subsort Constant < NeConstantSet < ConstantSet .
+  subsort TermQid < NeTermQidSet < TermQidSet .
+  subsort EmptyTypeSet < ConstantSet VariableSet .
+  subsort VariableSet ConstantSet < TermQidSet .
+  subsort NeVariableSet NeConstantSet < NeTermQidSet .
+  subsort TermQidSet < QidSet .
+  subsort NeTermQidSet < NeQidSet .
+  op _;_ : TermQidSet TermQidSet -> TermQidSet [ctor ditto] .
+  op _;_ : NeTermQidSet TermQidSet -> NeTermQidSet [ctor ditto] .
+  op _;_ : ConstantSet ConstantSet -> ConstantSet [ctor ditto] .
+  op _;_ : NeConstantSet ConstantSet -> NeConstantSet [ctor ditto] .
+  op _;_ : VariableSet VariableSet -> VariableSet [ctor ditto] .
+  op _;_ : NeVariableSet VariableSet -> NeVariableSet [ctor ditto] .
+
   --- 1.a - refine Substitution
+  sort VarAssignment ConstAssignment GroundAssignment .
+  sort EmptySubstitution VarSubstitution ConstSubstitution GroundSubstitution .
+  subsort ConstAssignment < GroundAssignment .
+  subsort VarAssignment ConstAssignment GroundAssignment < Assignment .
+  subsort EmptySubstitution < VarSubstitution ConstSubstitution GroundSubstitution < Substitution .
+  subsort ConstSubstitution < GroundSubstitution .
+  subsort VarAssignment < VarSubstitution .
+  subsort ConstAssignment < ConstSubstitution .
+  subsort GroundAssignment < GroundSubstitution .
+  op _<-_ : Variable Variable -> VarAssignment [ctor ditto] .
+  op _<-_ : Variable Constant -> ConstAssignment [ctor ditto] .
+  op _<-_ : Variable GroundTerm -> GroundAssignment [ctor ditto] .
+  op none : -> EmptySubstitution [ctor ditto] .
+  op _;_  : EmptySubstitution  EmptySubstitution -> EmptySubstitution [ctor ditto] .
+  op _;_  : VarSubstitution    VarSubstitution -> VarSubstitution [ctor ditto] .
+  op _;_  : ConstSubstitution  ConstSubstitution -> ConstSubstitution [ctor ditto] .
+  op _;_  : GroundSubstitution GroundSubstitution -> GroundSubstitution [ctor ditto] .
 
   --- 1.b - refine GTermList by GTerm and NeGTermList
   sort GTerm NeGTermList .
