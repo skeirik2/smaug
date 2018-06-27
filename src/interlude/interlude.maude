@@ -1,13 +1,10 @@
 --- file: interlude.maude
 --- reqs: prelude.maude
 --- note: a value-added prelude; the interlude is divided into several sections
---- Overview
 --- Section 1: Prelude META-LEVEL sort refinements
---- Section 2: Prelude META-LEVEL extended data-structures
---- Section 3: Prelude META-LEVEL projection/injection functions
---- Section 4: Prelude META-LEVEL predicates/auxiliary functions
-
---- Section 1: Prelude META-LEVEL sort refinements
+--- Section 2: Prelude META-LEVEL projection/injection functions
+--- Section 3: Prelude META-LEVEL predicates/auxiliary functions
+--- Section 4: Prelude extended data-structures
 
 fmod META-LEVEL-REFINEMENT is
   pr META-LEVEL .
@@ -33,6 +30,24 @@ fmod META-LEVEL-REFINEMENT is
   op __ : NeVariableList VariableList -> NeVariableList [ctor ditto] .
   op __ : VariableList NeVariableList -> NeVariableList [ctor ditto] .
 
+  --- 0.b - refine QidSet by Ne/Variable/Constant/TermQidSet
+  sort VariableSet ConstantSet TermQidSet .
+  sort NeVariableSet NeConstantSet NeTermQidSet .
+  subsort Variable < NeVariableSet < VariableSet .
+  subsort Constant < NeConstantSet < ConstantSet .
+  subsort TermQid < NeTermQidSet < TermQidSet .
+  subsort EmptyTypeSet < ConstantSet VariableSet .
+  subsort VariableSet ConstantSet < TermQidSet .
+  subsort NeVariableSet NeConstantSet < NeTermQidSet .
+  subsort TermQidSet < QidSet .
+  subsort NeTermQidSet < NeQidSet .
+  op _;_ : TermQidSet TermQidSet -> TermQidSet [ctor ditto] .
+  op _;_ : NeTermQidSet TermQidSet -> NeTermQidSet [ctor ditto] .
+  op _;_ : ConstantSet ConstantSet -> ConstantSet [ctor ditto] .
+  op _;_ : NeConstantSet ConstantSet -> NeConstantSet [ctor ditto] .
+  op _;_ : VariableSet VariableSet -> VariableSet [ctor ditto] .
+  op _;_ : NeVariableSet VariableSet -> NeVariableSet [ctor ditto] .
+
   --- 1.a - refine Substitution
   sort VarAssignment ConstAssignment GroundAssignment .
   sort NoneSubstitution VarSubstitution ConstSubstitution GroundSubstitution .
@@ -52,7 +67,24 @@ fmod META-LEVEL-REFINEMENT is
   op _;_  : ConstSubstitution  ConstSubstitution -> ConstSubstitution [ctor ditto] .
   op _;_  : GroundSubstitution GroundSubstitution -> GroundSubstitution [ctor ditto] .
 
-  --- 1.b - refine GTermList by GTerm and NeGTermList
+  --- 1.b.1 - refine Ne/Term/List by Ne/NonConstant/List
+  sort GroundNonConstant NeGroundNonConstantList GroundNonConstantList .
+  sort NonConstant NeNonConstantList NonConstantList .
+  subsort GroundNonConstant < NeGroundNonConstantList < GroundNonConstantList .
+  subsort NonConstant < NeNonConstantList < NonConstantList .
+  subsort GroundNonConstant < NonConstant < Term .
+  subsort NeGroundNonConstantList < NeNonConstantList < NeTermList .
+  subsort GroundNonConstantList < NonConstantList < TermList .
+  op _[_] : Qid NeGroundTermList -> GroundNonConstant [ctor ditto] .
+  op _[_] : Qid NeTermList -> NonConstant [ctor ditto] .
+  op _,_ : GroundNonConstantList GroundNonConstantList -> GroundNonConstantList [ctor ditto] .
+  op _,_ : NeGroundNonConstantList GroundNonConstantList -> NeGroundNonConstantList [ctor ditto] .
+  op _,_ : GroundNonConstantList NeGroundNonConstantList -> NeGroundNonConstantList [ctor ditto] .
+  op _,_ : NonConstantList NonConstantList -> NonConstantList [ctor ditto] .
+  op _,_ : NeNonConstantList NonConstantList -> NeNonConstantList [ctor ditto] .
+  op _,_ : NonConstantList NeNonConstantList -> NeNonConstantList [ctor ditto] .
+
+  --- 1.b.2 - refine GTermList by GTerm and NeGTermList
   sort GTerm NeGTermList .
   subsort Term Context < GTerm < NeGTermList < GTermList .
   subsort NeCTermList NeTermList < NeGTermList .
@@ -234,7 +266,7 @@ fmod SUBSTITUTIONSET is
 endfm
 
 fmod ATTRSET2 is
-  pr META-LEVEL .
+  pr META-LEVEL-REFINEMENT .
   sort EmptyAttrSet2 NeAttrSet2 AttrSet2 .
   subsort AttrSet < NeAttrSet2 < AttrSet2 .
   subsort EmptyAttrSet2 < AttrSet2 .
@@ -244,4 +276,136 @@ fmod ATTRSET2 is
   op _|_ : NeAttrSet2 AttrSet2 -> NeAttrSet2 [ctor ditto] .
 
   eq X:AttrSet | X:AttrSet = X:AttrSet .
+endfm
+
+fmod CONDITIONSET is
+  pr META-LEVEL-REFINEMENT .
+  sort EmptyConditionSet EqConditionSet NeEqConditionSet ConditionSet NeConditionSet .
+  subsort EqCondition < NeEqConditionSet < EqConditionSet .
+  subsort Condition < NeConditionSet < ConditionSet .
+  subsort NeEqConditionSet < NeConditionSet .
+  subsort EmptyConditionSet < EqConditionSet < ConditionSet .
+  op empty : -> EmptyConditionSet .
+  op _|_ : EmptyConditionSet EmptyConditionSet -> EmptyConditionSet [ctor assoc comm id: empty format (d n d d)] .
+  op _|_ : EqConditionSet EqConditionSet -> EqConditionSet [ctor ditto] .
+  op _|_ : NeEqConditionSet EqConditionSet -> NeEqConditionSet [ctor ditto] .
+  op _|_ : ConditionSet ConditionSet -> ConditionSet [ctor ditto] .
+  op _|_ : NeConditionSet ConditionSet -> NeConditionSet [ctor ditto] .
+endfm
+
+fmod QID? is
+  pr META-LEVEL .
+  sort Qid? .
+  subsort Qid < Qid? .
+  op noQid : -> Qid? [ctor] .
+endfm
+
+fmod GTERM? is
+  pr META-LEVEL-REFINEMENT .
+  sort GTerm? .
+  subsort GTerm < GTerm? .
+  op noTerm : -> GTerm? [ctor] .
+endfm
+
+--- Section 3: Prelude META-LEVEL projection/injection functions
+
+fmod META-LEVEL-PROJECTIONS is
+  pr META-LEVEL-REFINEMENT .
+  pr TERMSET .
+  pr SUBSTITUTIONSET .
+  pr ATTRSET2 .
+  pr CONDITIONSET .
+  pr QID? .
+  pr GTERM? .
+
+  --- individual
+  op tq-type : TermQid -> Type .
+  op tq-name : TermQid -> Qid .
+  --- set liftings
+  op tq-type : TermQidSet -> TypeSet .
+  op tq-name : TermQidSet -> QidSet .
+  --- list liftings
+  op tq-type : TermQidList -> TypeList .
+  op tq-name : TermQidList -> QidList .
+
+  --- individual
+  op sb-dom : Substitution -> VariableSet .
+  op sb-codom : GroundSubstitution -> GroundTermSet .
+  op sb-codom : Substitution -> TermSet .
+
+  --- individual
+  op tr-root : GTerm -> Qid .
+  op tr-children : Term -> TermList .
+  op tr-children : GTerm -> GTermList .
+  op tr-children : NonConstant -> NeTermList .
+  op tr-subterm : GTerm NatList -> GTerm? .
+
+  --- individual
+  op op-name : OpDecl -> Qid .
+  op op-arity : OpDecl -> TypeList .
+  op op-arity : SortOpDecl -> SortList .
+  op op-arity : KindOpDecl -> KindList .
+  op op-coarity : OpDecl -> Type .
+  op op-coarity : SortOpDecl -> Sort .
+  op op-coarity : KindOpDecl -> Kind .
+  op op-attrs : OpDecl -> AttrSet .
+  op op-label : OpDecl -> QidSet .
+  --- set lifting
+  op op-name : OpDeclSet -> QidSet .
+  op op-arity : EmptyOpDeclSet -> EmptyTypeListSet .
+  op op-arity : OpDeclSet -> TypeListSet .
+  op op-arity : SortOpDeclSet -> SortListSet .
+  op op-arity : KindOpDeclSet -> KindListSet .
+  op op-coarity : EmptyOpDeclSet -> EmptyTypeSet .
+  op op-coarity : OpDeclSet -> TypeSet .
+  op op-coarity : SortOpDeclSet -> SortSet .
+  op op-coarity : KindOpDeclSet -> KindSet .
+  op op-attrs : OpDeclSet -> AttrSet2 .
+  op op-label : OpDecl -> QidSet .
+
+  --- individual
+  op mb-term : MembAx -> Term .
+  op mb-sort : MembAx -> Sort .
+  op mb-cond : CondMembAx -> EqCondition .
+  op mb-attrs : MembAx -> AttrSet .
+  op mb-label : MembAx -> QidSet .
+  --- set lifting
+  op mb-term : MembAxSet -> TermSet .
+  op mb-sort : MembAxSet -> SortSet .
+  op mb-cond : CondMembAxSet -> EqConditionSet .
+  op mb-attrs : MembAxSet -> AttrSet2 .
+  op mb-label : MembAxSet -> QidSet .
+
+  --- individual
+  op eq-lhs : Equation -> Term .
+  op eq-rhs : Equation -> Term .
+  op eq-cond : CondEquation -> EqCondition .
+  op eq-attrs : Equation -> AttrSet .
+  op eq-label : Equation -> QidSet .
+  --- set lifting
+  op eq-lhs : Equation -> TermSet .
+  op eq-rhs : Equation -> TermSet .
+  op eq-cond : CondEquation -> EqConditionSet .
+  op eq-attrs : Equation -> AttrSet2 .
+  op eq-label : Equation -> QidSet .
+
+  --- individual
+  op rl-lhs : Rule -> Term .
+  op rl-rhs : Rule -> Term .
+  op rl-cond : CondRule -> EqCondition .
+  op rl-attrs : Rule -> AttrSet .
+  op rl-label : Rule -> QidSet .
+  --- set lifting
+  op rl-lhs : Rule -> TermSet .
+  op rl-rhs : Rule -> TermSet .
+  op rl-cond : CondRule -> EqConditionSet .
+  op rl-attrs : Rule -> AttrSet2 .
+  op rl-label : Rule -> QidSet .
+
+  --- module
+  op md-sorts : Module -> SortSet .
+  op md-subsorts : Module -> SubsortDeclSet .
+  op md-ops : Module -> OpDeclSet .
+  op md-mbs : Module -> MembAxSet .
+  op md-rls : Module -> RuleSet .
 endfm
