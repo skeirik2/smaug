@@ -1,10 +1,13 @@
 --- file: interlude.maude
 --- reqs: prelude.maude
 --- note: a value-added prelude; the interlude is divided into several sections
+--- Overview
 --- Section 1: Prelude META-LEVEL sort refinements
---- Section 2: Prelude META-LEVEL projection/injection functions
---- Section 3: Prelude META-LEVEL predicates/auxiliary functions
---- Section 4: Prelude extended data-structures
+--- Section 2: Prelude META-LEVEL extended data-structures
+--- Section 3: Prelude META-LEVEL projection/injection functions
+--- Section 4: Prelude META-LEVEL predicates/auxiliary functions
+
+--- Section 1: Prelude META-LEVEL sort refinements
 
 fmod META-LEVEL-REFINEMENT is
   pr META-LEVEL .
@@ -30,30 +33,12 @@ fmod META-LEVEL-REFINEMENT is
   op __ : NeVariableList VariableList -> NeVariableList [ctor ditto] .
   op __ : VariableList NeVariableList -> NeVariableList [ctor ditto] .
 
-  --- 0.b - refine QidSet by Ne/Variable/Constant/TermQidSet
-  sort VariableSet ConstantSet TermQidSet .
-  sort NeVariableSet NeConstantSet NeTermQidSet .
-  subsort Variable < NeVariableSet < VariableSet .
-  subsort Constant < NeConstantSet < ConstantSet .
-  subsort TermQid < NeTermQidSet < TermQidSet .
-  subsort EmptyTypeSet < ConstantSet VariableSet .
-  subsort VariableSet ConstantSet < TermQidSet .
-  subsort NeVariableSet NeConstantSet < NeTermQidSet .
-  subsort TermQidSet < QidSet .
-  subsort NeTermQidSet < NeQidSet .
-  op _;_ : TermQidSet TermQidSet -> TermQidSet [ctor ditto] .
-  op _;_ : NeTermQidSet TermQidSet -> NeTermQidSet [ctor ditto] .
-  op _;_ : ConstantSet ConstantSet -> ConstantSet [ctor ditto] .
-  op _;_ : NeConstantSet ConstantSet -> NeConstantSet [ctor ditto] .
-  op _;_ : VariableSet VariableSet -> VariableSet [ctor ditto] .
-  op _;_ : NeVariableSet VariableSet -> NeVariableSet [ctor ditto] .
-
   --- 1.a - refine Substitution
   sort VarAssignment ConstAssignment GroundAssignment .
-  sort EmptySubstitution VarSubstitution ConstSubstitution GroundSubstitution .
+  sort NoneSubstitution VarSubstitution ConstSubstitution GroundSubstitution .
   subsort ConstAssignment < GroundAssignment .
   subsort VarAssignment ConstAssignment GroundAssignment < Assignment .
-  subsort EmptySubstitution < VarSubstitution ConstSubstitution GroundSubstitution < Substitution .
+  subsort NoneSubstitution < VarSubstitution ConstSubstitution GroundSubstitution < Substitution .
   subsort ConstSubstitution < GroundSubstitution .
   subsort VarAssignment < VarSubstitution .
   subsort ConstAssignment < ConstSubstitution .
@@ -61,8 +46,8 @@ fmod META-LEVEL-REFINEMENT is
   op _<-_ : Variable Variable -> VarAssignment [ctor ditto] .
   op _<-_ : Variable Constant -> ConstAssignment [ctor ditto] .
   op _<-_ : Variable GroundTerm -> GroundAssignment [ctor ditto] .
-  op none : -> EmptySubstitution [ctor ditto] .
-  op _;_  : EmptySubstitution  EmptySubstitution -> EmptySubstitution [ctor ditto] .
+  op none : -> NoneSubstitution [ctor ditto] .
+  op _;_  : NoneSubstitution  NoneSubstitution -> NoneSubstitution [ctor ditto] .
   op _;_  : VarSubstitution    VarSubstitution -> VarSubstitution [ctor ditto] .
   op _;_  : ConstSubstitution  ConstSubstitution -> ConstSubstitution [ctor ditto] .
   op _;_  : GroundSubstitution GroundSubstitution -> GroundSubstitution [ctor ditto] .
@@ -186,4 +171,77 @@ fmod META-LEVEL-REFINEMENT is
   op __ : RewCondRuleSet RewCondRuleSet -> RewCondRuleSet [ctor ditto] .
   op __ : CondRuleSet CondRuleSet -> CondRuleSet [ctor ditto] .
   op __ : UncondRuleSet UncondRuleSet -> UncondRuleSet [ctor ditto] .
+endfm
+
+--- Section 2: Prelude META-LEVEL extended data-structures
+
+fmod TERMSET is
+  pr META-LEVEL-REFINEMENT .
+
+  sort EmptyTermSet .
+  sort GroundTermSet TermSet GTermSet .
+  sort NeGroundTermSet NeTermSet NeCTermSet NeGTermSet .
+  subsort GroundTerm < NeGroundTermSet < GroundTermSet .
+  subsort Context < NeCTermSet .
+  subsort Term < NeTermSet < TermSet .
+  subsort GTerm < NeGTermSet < GTermSet .
+  subsort EmptyTermSet < GroundTermSet < TermSet < GTermSet .
+  subsort NeGroundTermSet < NeTermSet < NeGTermSet .
+  subsort NeCTermSet NeTermSet < NeGTermSet .
+
+  op mt : -> EmptyTermSet [ctor] .
+  op _|_ : EmptyTermSet EmptyTermSet -> EmptyTermSet [ctor assoc comm id: mt format (d n d d)] .
+  op _|_ : GroundTermSet GroundTermSet -> GroundTermSet [ctor ditto] .
+  op _|_ : NeGroundTermSet GroundTermSet -> NeGroundTermSet [ctor ditto] .
+  op _|_ : TermSet TermSet -> TermSet [ctor ditto] .
+  op _|_ : NeTermSet TermSet -> NeTermSet [ctor ditto] .
+  op _|_ : NeCTermSet TermSet -> NeCTermSet [ctor ditto] .
+  op _|_ : GTermSet GTermSet -> GTermSet [ctor ditto] .
+  op _|_ : NeGTermSet GTermSet -> NeGTermSet [ctor ditto] .
+
+  eq X:GTerm | X:GTerm = X:GTerm .
+endfm
+
+fmod SUBSTITUTIONSET is
+  pr META-LEVEL-REFINEMENT .
+
+  sort EmptySubstitutionSet NoneSubstitutionSet VarSubstitutionSet ConstSubstitutionSet GroundSubstitutionSet SubstitutionSet .
+  sort NeNoneSubstitutionSet NeVarSubstitutionSet NeConstSubstitutionSet NeGroundSubstitutionSet NeSubstitutionSet .
+  subsort NoneSubstitution < NeNoneSubstitutionSet < NoneSubstitutionSet .
+  subsort VarSubstitution < NeVarSubstitutionSet < VarSubstitutionSet .
+  subsort ConstSubstitution < NeConstSubstitutionSet < ConstSubstitutionSet .
+  subsort GroundSubstitution < NeGroundSubstitutionSet < GroundSubstitutionSet .
+  subsort Substitution < NeSubstitutionSet < SubstitutionSet .
+  subsort ConstSubstitutionSet < GroundSubstitutionSet .
+  subsort NeConstSubstitutionSet < NeGroundSubstitutionSet .
+  subsort EmptySubstitutionSet < NoneSubstitutionSet < VarSubstitutionSet ConstSubstitutionSet GroundSubstitutionSet < SubstitutionSet .
+  subsort NeNoneSubstitutionSet < NeVarSubstitutionSet NeConstSubstitutionSet NeGroundSubstitutionSet < NeSubstitutionSet .
+
+  op empty : -> EmptySubstitutionSet [ctor] .
+  op _|_ : EmptySubstitutionSet EmptySubstitutionSet -> EmptySubstitutionSet [ctor assoc comm id: empty format (d n d d)] .
+  op _|_ : NoneSubstitutionSet NoneSubstitutionSet -> NoneSubstitutionSet [ctor ditto] .
+  op _|_ : NeNoneSubstitutionSet NoneSubstitutionSet -> NeNoneSubstitutionSet [ctor ditto] .
+  op _|_ : VarSubstitutionSet VarSubstitutionSet -> VarSubstitutionSet [ctor ditto] .
+  op _|_ : NeVarSubstitutionSet VarSubstitutionSet -> NeVarSubstitutionSet [ctor ditto] .
+  op _|_ : ConstSubstitutionSet ConstSubstitutionSet -> ConstSubstitutionSet [ctor ditto] .
+  op _|_ : NeConstSubstitutionSet ConstSubstitutionSet -> NeConstSubstitutionSet [ctor ditto] .
+  op _|_ : GroundSubstitutionSet GroundSubstitutionSet -> GroundSubstitutionSet [ctor ditto] .
+  op _|_ : NeGroundSubstitutionSet GroundSubstitutionSet -> NeGroundSubstitutionSet [ctor ditto] .
+  op _|_ : SubstitutionSet SubstitutionSet -> SubstitutionSet [ctor ditto] .
+  op _|_ : NeSubstitutionSet SubstitutionSet -> NeSubstitutionSet [ctor ditto] .
+
+  eq X:Substitution | X:Substitution = X:Substitution .
+endfm
+
+fmod ATTRSET2 is
+  pr META-LEVEL .
+  sort EmptyAttrSet2 NeAttrSet2 AttrSet2 .
+  subsort AttrSet < NeAttrSet2 < AttrSet2 .
+  subsort EmptyAttrSet2 < AttrSet2 .
+  op empty : -> EmptyAttrSet2 [ctor] .
+  op _|_ : EmptyAttrSet2 EmptyAttrSet2 -> EmptyAttrSet2 [ctor assoc comm id: empty format (d n d d)] .
+  op _|_ : AttrSet2 AttrSet2 -> AttrSet2 [ctor ditto] .
+  op _|_ : NeAttrSet2 AttrSet2 -> NeAttrSet2 [ctor ditto] .
+
+  eq X:AttrSet | X:AttrSet = X:AttrSet .
 endfm
