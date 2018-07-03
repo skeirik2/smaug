@@ -438,10 +438,15 @@ endfm
 fmod CONDITIONSET is
   pr META-LEVEL-REFINEMENT .
   sort EmptyConditionSet EqConditionSet NeEqConditionSet ConditionSet NeConditionSet .
+  --- Set Functor Induced Subsorts
   subsort EqCondition < NeEqConditionSet < EqConditionSet .
   subsort Condition < NeConditionSet < ConditionSet .
+  --- Set Functor Subsort-Induced Subsorts
   subsort NeEqConditionSet < NeConditionSet .
-  subsort EmptyConditionSet < EqConditionSet < ConditionSet .
+  subsort EqConditionSet < ConditionSet .
+  --- For Future Preregularity Needs
+  subsort EmptyConditionSet < EqConditionSet .
+  --- New ConditionSet Operators
   op empty : -> EmptyConditionSet .
   op _|_ : EmptyConditionSet EmptyConditionSet -> EmptyConditionSet [ctor assoc comm id: empty format (d n d d)] .
   op _|_ : EqConditionSet EqConditionSet -> EqConditionSet [ctor ditto] .
