@@ -270,18 +270,39 @@ fmod TERMSET is
   pr META-LEVEL-REFINEMENT .
 
   sort EmptyTermSet .
-  sort GroundTermSet TermSet GTermSet .
-  sort NeGroundTermSet NeTermSet NeCTermSet NeGTermSet .
+  sort VarTermSet ConstTermSet NonConstTermSet GroundNonConstTermSet GroundTermSet TermSet CTermSet GTermSet .
+  sort NeVarTermSet NeConstTermSet NeNonConstTermSet NeGroundNonConstTermSet NeGroundTermSet NeTermSet NeCTermSet NeGTermSet .
+  --- Set Functor Induced Subsorts
+  subsort Variable < NeVarTermSet < VarTermSet .
+  subsort Constant < NeConstTermSet < ConstTermSet .
+  subsort NonConstTerm < NeNonConstTermSet < NonConstTermSet .
+  subsort GroundNonConstTerm < NeGroundNonConstTermSet < GroundNonConstTermSet .
   subsort GroundTerm < NeGroundTermSet < GroundTermSet .
-  subsort Context < NeCTermSet .
+  subsort Context < NeCTermSet < CTermSet .
   subsort Term < NeTermSet < TermSet .
   subsort GTerm < NeGTermSet < GTermSet .
-  subsort EmptyTermSet < GroundTermSet < TermSet < GTermSet .
-  subsort NeGroundTermSet < NeTermSet < NeGTermSet .
-  subsort NeCTermSet NeTermSet < NeGTermSet .
-
+  --- Set Functor Subsort-Induced Subsorts
+  subsort ConstTermSet GroundNonConstTermSet < GroundTermSet < TermSet < GTermSet .
+  subsort GroundNonConstTermSet < NonConstTermSet .
+  subsort VarTermSet ConstTermSet NonConstTermSet < TermSet < GTermSet .
+  subsort CTermSet < GTermSet .
+  subsort NeConstTermSet NeGroundNonConstTermSet < NeGroundTermSet < NeTermSet < NeGTermSet .
+  subsort NeGroundNonConstTermSet < NeNonConstTermSet .
+  subsort NeVarTermSet NeConstTermSet NeNonConstTermSet < NeTermSet < NeGTermSet .
+  subsort NeCTermSet < NeGTermSet .
+  --- Preregularity Induced Subsorts
+  subsort EmptyTermSet < VarTermSet ConstTermSet GroundNonConstTermSet CTermSet .
+  --- New TermSet Operators
   op mt : -> EmptyTermSet [ctor] .
   op _|_ : EmptyTermSet EmptyTermSet -> EmptyTermSet [ctor assoc comm id: mt format (d n d d)] .
+  op _|_ : VarTermSet VarTermSet -> VarTermSet [ctor ditto] .
+  op _|_ : NeVarTermSet VarTermSet -> NeVarTermSet [ctor ditto] .
+  op _|_ : ConstTermSet ConstTermSet -> ConstTermSet [ctor ditto] .
+  op _|_ : NeConstTermSet ConstTermSet -> NeConstTermSet [ctor ditto] .
+  op _|_ : NonConstTermSet NonConstTermSet -> NonConstTermSet [ctor ditto] .
+  op _|_ : NeNonConstTermSet NonConstTermSet -> NeNonConstTermSet [ctor ditto] .
+  op _|_ : GroundNonConstTermSet GroundNonConstTermSet -> GroundNonConstTermSet [ctor ditto] .
+  op _|_ : NeGroundNonConstTermSet GroundNonConstTermSet -> NeGroundNonConstTermSet [ctor ditto] .
   op _|_ : GroundTermSet GroundTermSet -> GroundTermSet [ctor ditto] .
   op _|_ : NeGroundTermSet GroundTermSet -> NeGroundTermSet [ctor ditto] .
   op _|_ : TermSet TermSet -> TermSet [ctor ditto] .
@@ -289,8 +310,48 @@ fmod TERMSET is
   op _|_ : NeCTermSet TermSet -> NeCTermSet [ctor ditto] .
   op _|_ : GTermSet GTermSet -> GTermSet [ctor ditto] .
   op _|_ : NeGTermSet GTermSet -> NeGTermSet [ctor ditto] .
-
+  --- TermSet Idempotency Law
   eq X:GTerm | X:GTerm = X:GTerm .
+endfm
+
+fmod TERMLISTSET is
+  pr TERMSET .
+  sort EmptyTermListSet .
+  sort VarTermListSet ConstTermListSet NonConstTermListSet GroundNonConstTermListSet .
+  sort GroundTermListSet TermListSet NeCTermListSet GTermListSet .
+  --- TermListSet Functor Subsort-Induced Subsorts
+  subsort VarTermList VarTermSet < VarTermListSet .
+  subsort ConstTermList ConstTermSet < ConstTermListSet .
+  subsort NonConstTermList NonConstTermSet < NonConstTermListSet .
+  subsort GroundNonConstTermList GroundNonConstTermSet < GroundNonConstTermListSet .
+  subsort GroundTermList GroundTermSet < GroundTermListSet .
+  subsort TermList TermSet < TermListSet .
+  subsort GTermList GTermSet < GTermListSet .
+  --- TermListSet Functor Subsort-Induced Subsorts
+  subsort ConstTermListSet GroundNonConstTermListSet < GroundTermListSet < TermListSet < GTermListSet .
+  subsort GroundNonConstTermListSet < NonConstTermListSet .
+  subsort VarTermListSet ConstTermListSet NonConstTermListSet < TermListSet < GTermListSet .
+  subsort VarTermListSet < TermListSet < GTermListSet .
+  --- Preregularity Induced Subsorts
+  subsort EmptyTermSet EmptyCommaList < EmptyTermListSet .
+  subsort EmptyTermListSet < VarTermListSet ConstTermListSet GroundNonConstTermListSet .
+  --- TermListSet Operators
+  op _|_ : EmptyTermListSet EmptyTermListSet -> EmptyTermListSet [ctor ditto] .
+  op _|_ : VarTermListSet VarTermListSet -> VarTermListSet [ctor ditto] .
+  op _|_ : ConstTermListSet ConstTermListSet -> ConstTermListSet [ctor ditto] .
+  op _|_ : NonConstTermListSet NonConstTermListSet -> NonConstTermListSet [ctor ditto] .
+  op _|_ : GroundNonConstTermListSet GroundNonConstTermListSet -> GroundNonConstTermListSet [ctor ditto] .
+  op _|_ : GroundTermListSet GroundTermListSet -> GroundTermListSet [ctor ditto] .
+  op _|_ : TermListSet TermListSet -> TermListSet [ctor ditto] .
+  op _|_ : GTermListSet GTermListSet -> GTermListSet [ctor ditto] .
+  --- TermListSet Idempotency Law
+  eq X:GTermList | X:GTermList = X:GTermList .
+  --- NOTE: Because CTermList cannot be defined in a way that preserves the semantics of
+  ---       NeCTermList, we cannot lift Context to CTermListSet; that has to be special
+  ---       cased as a proper Boolean predicate over the GTermList sort
+  --- subsort NeCTermList NeCTermSet < NeCTermListSet .
+  --- subsort NeCTermListSet < GTermListSet .
+  --- op _|_ : NeCTermListSet NeCTermListSet -> NeCTermListSet [ctor ditto] .
 endfm
 
 fmod SUBSTITUTIONSET is
