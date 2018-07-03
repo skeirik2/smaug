@@ -474,9 +474,10 @@ endfm
 
 --- Section 3: Prelude META-LEVEL projection/injection functions
 
-fmod META-LEVEL-PROJECTIONS is
+fmod META-LEVEL-PROJECTIONS-SIG is
   pr META-LEVEL-REFINEMENT .
   pr TERMSET .
+  pr TERMLISTSET .
   pr SUBSTITUTIONSET .
   pr ATTRSET2 .
   pr CONDITIONSET .
@@ -501,9 +502,14 @@ fmod META-LEVEL-PROJECTIONS is
   --- individual
   op tr-root : GTerm -> Qid .
   op tr-children : Term -> TermList .
+  op tr-children : NonConstTerm -> NeTermList .
   op tr-children : GTerm -> GTermList .
-  op tr-children : NonConstant -> NeTermList .
-  op tr-subterm : GTerm NatList -> GTerm? .
+  op tr-children : NonConstGTerm -> NeGTermList .
+  op tr-subterm  : GTerm NatList -> GTerm? .
+  --- set lifting
+  op tr-root : GTerm -> QidSet .
+  op tr-children : TermSet -> TermListSet .
+  op tr-children : GTermSet -> GTermListSet .
 
   --- individual
   op op-name : OpDecl -> Qid .
@@ -517,11 +523,11 @@ fmod META-LEVEL-PROJECTIONS is
   op op-label : OpDecl -> QidSet .
   --- set lifting
   op op-name : OpDeclSet -> QidSet .
-  op op-arity : EmptyOpDeclSet -> EmptyTypeListSet .
-  op op-arity : OpDeclSet -> TypeListSet .
+  op op-arity : EmptyOpDeclSet -> EmptyQidListSet .
+  op op-arity : OpDeclSet -> QidListSet .
   op op-arity : SortOpDeclSet -> SortListSet .
   op op-arity : KindOpDeclSet -> KindListSet .
-  op op-coarity : EmptyOpDeclSet -> EmptyTypeSet .
+  op op-coarity : EmptyOpDeclSet -> EmptyQidSet .
   op op-coarity : OpDeclSet -> TypeSet .
   op op-coarity : SortOpDeclSet -> SortSet .
   op op-coarity : KindOpDeclSet -> KindSet .
