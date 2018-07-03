@@ -376,19 +376,32 @@ endfm
 
 --- TODO: add TERMPAIRSET
 
- fmod SUBSTITUTIONSET is
-  sort EmptySubstitutionSet NoneSubstitutionSet VarSubstitutionSet ConstSubstitutionSet GroundSubstitutionSet SubstitutionSet .
-  sort NeNoneSubstitutionSet NeVarSubstitutionSet NeConstSubstitutionSet NeGroundSubstitutionSet NeSubstitutionSet .
+fmod SUBSTITUTIONSET is
+  pr META-LEVEL-REFINEMENT .
+  --- Empty Set of Substitutions
+  sort EmptySubstitutionSet .
+  --- Set of Empty Substitutions (called NoneSubstitution above) Needed for Preregularity
+  sort NoneSubstitutionSet NeNoneSubstitutionSet .
+  --- Standard Substitution Set Sorts
+  sort VarSubstitutionSet ConstSubstitutionSet NonConstSubstitutionSet .
+  sort GroundNonConstSubstitutionSet GroundSubstitutionSet SubstitutionSet .
+  sort NeVarSubstitutionSet NeConstSubstitutionSet NeNonConstSubstitutionSet .
+  sort NeGroundNonConstSubstitutionSet NeGroundSubstitutionSet NeSubstitutionSet .
+  --- Set Functor Induced Subsorts
   subsort NoneSubstitution < NeNoneSubstitutionSet < NoneSubstitutionSet .
   subsort VarSubstitution < NeVarSubstitutionSet < VarSubstitutionSet .
   subsort ConstSubstitution < NeConstSubstitutionSet < ConstSubstitutionSet .
+  subsort NonConstSubstitution < NeNonConstSubstitutionSet < NonConstSubstitutionSet .
+  subsort GroundNonConstSubstitution < NeGroundNonConstSubstitutionSet < GroundNonConstSubstitutionSet .
   subsort GroundSubstitution < NeGroundSubstitutionSet < GroundSubstitutionSet .
   subsort Substitution < NeSubstitutionSet < SubstitutionSet .
-  subsort ConstSubstitutionSet < GroundSubstitutionSet .
-  subsort NeConstSubstitutionSet < NeGroundSubstitutionSet .
-  subsort EmptySubstitutionSet < NoneSubstitutionSet < VarSubstitutionSet ConstSubstitutionSet GroundSubstitutionSet < SubstitutionSet .
-  subsort NeNoneSubstitutionSet < NeVarSubstitutionSet NeConstSubstitutionSet NeGroundSubstitutionSet < NeSubstitutionSet .
-
+  --- Set Functor Subsort-Induced Subsorts Set 1
+  subsort EmptySubstitutionSet < NoneSubstitutionSet < VarSubstitutionSet ConstSubstitutionSet NonConstSubstitutionSet GroundSubstitutionSet < SubstitutionSet .
+  subsort NeNoneSubstitutionSet < NeVarSubstitutionSet NeConstSubstitutionSet NeNonConstSubstitutionSet NeGroundSubstitutionSet < NeSubstitutionSet .
+  --- Set Functor Subsort-Induced Subsorts Set 2
+  subsort ConstSubstitutionSet GroundNonConstSubstitutionSet < GroundSubstitutionSet .
+  subsort NeConstSubstitutionSet NeGroundNonConstSubstitutionSet < NeGroundSubstitutionSet .
+  --- Substitution Set Operators
   op empty : -> EmptySubstitutionSet [ctor] .
   op _|_ : EmptySubstitutionSet EmptySubstitutionSet -> EmptySubstitutionSet [ctor assoc comm id: empty format (d n d d)] .
   op _|_ : NoneSubstitutionSet NoneSubstitutionSet -> NoneSubstitutionSet [ctor ditto] .
@@ -397,11 +410,15 @@ endfm
   op _|_ : NeVarSubstitutionSet VarSubstitutionSet -> NeVarSubstitutionSet [ctor ditto] .
   op _|_ : ConstSubstitutionSet ConstSubstitutionSet -> ConstSubstitutionSet [ctor ditto] .
   op _|_ : NeConstSubstitutionSet ConstSubstitutionSet -> NeConstSubstitutionSet [ctor ditto] .
+  op _|_ : NonConstSubstitutionSet NonConstSubstitutionSet -> NonConstSubstitutionSet [ctor ditto] .
+  op _|_ : NeNonConstSubstitutionSet NonConstSubstitutionSet -> NeNonConstSubstitutionSet [ctor ditto] .
+  op _|_ : GroundNonConstSubstitutionSet GroundNonConstSubstitutionSet -> GroundNonConstSubstitutionSet [ctor ditto] .
+  op _|_ : NeGroundNonConstSubstitutionSet GroundNonConstSubstitutionSet -> NeGroundNonConstSubstitutionSet [ctor ditto] .
   op _|_ : GroundSubstitutionSet GroundSubstitutionSet -> GroundSubstitutionSet [ctor ditto] .
   op _|_ : NeGroundSubstitutionSet GroundSubstitutionSet -> NeGroundSubstitutionSet [ctor ditto] .
   op _|_ : SubstitutionSet SubstitutionSet -> SubstitutionSet [ctor ditto] .
   op _|_ : NeSubstitutionSet SubstitutionSet -> NeSubstitutionSet [ctor ditto] .
-
+  --- Substitution Set Idempotency Law
   eq X:Substitution | X:Substitution = X:Substitution .
 endfm
 
