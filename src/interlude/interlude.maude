@@ -354,9 +354,29 @@ fmod TERMLISTSET is
   --- op _|_ : NeCTermListSet NeCTermListSet -> NeCTermListSet [ctor ditto] .
 endfm
 
-fmod SUBSTITUTIONSET is
+fmod TERMPAIR is
   pr META-LEVEL-REFINEMENT .
+  --- TermPair Sorts
+  sort VarTermPair ConstTermPair NonConstTermPair GroundNonConstTermPair GroundTermPair TermPair CTermPair GTermPair .
+  --- Pair Functor Subsort-Induced Subsorts
+  subsort ConstTermPair GroundNonConstTermPair < GroundTermPair < TermPair < GTermPair .
+  subsort GroundNonConstTermPair < NonConstTermPair .
+  subsort VarTermPair ConstTermPair NonConstTermPair < TermPair < GTermPair .
+  subsort CTermPair < GTermPair .
+  --- New TermPair Operators
+  op ((_|_)) : Variable Variable -> VarTermPair [ctor] .
+  op ((_|_)) : Constant Constant -> ConstTermPair [ctor] .
+  op ((_|_)) : NonConstTerm NonConstTerm -> NonConstTermPair [ctor] .
+  op ((_|_)) : GroundNonConstTerm GroundNonConstTerm -> GroundNonConstTermPair [ctor] .
+  op ((_|_)) : GroundTerm GroundTerm -> GroundTermPair [ctor] .
+  op ((_|_)) : Term Term -> TermPair [ctor] .
+  op ((_|_)) : Context Context -> CTermPair [ctor] .
+  op ((_|_)) : GTerm GTerm -> GTermPair [ctor] .
+endfm
 
+--- TODO: add TERMPAIRSET
+
+ fmod SUBSTITUTIONSET is
   sort EmptySubstitutionSet NoneSubstitutionSet VarSubstitutionSet ConstSubstitutionSet GroundSubstitutionSet SubstitutionSet .
   sort NeNoneSubstitutionSet NeVarSubstitutionSet NeConstSubstitutionSet NeGroundSubstitutionSet NeSubstitutionSet .
   subsort NoneSubstitution < NeNoneSubstitutionSet < NoneSubstitutionSet .
