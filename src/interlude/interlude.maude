@@ -9,17 +9,39 @@
 fmod META-LEVEL-REFINEMENT is
   pr META-LEVEL .
 
-  --- 0.a - refine QidList by Ne/Variable/Constant/TermQidList
+  --- 1.a - refine Ne/TypeList by Ne/Sort/Kind/List
+  sort NilQidList NeSortList NeKindList SortList KindList .
+  --- List Functor Induced Subsorts
+  subsort Sort < NeSortList < SortList .
+  subsort Kind < NeKindList < KindList .
+  --- List Functor Subsort-Induced Subsorts
+  subsort NeSortList NeKindList < NeTypeList .
+  subsort SortList KindList < TypeList .
+  --- Preregularity Induced Subsort
+  subsort NilQidList < SortList KindList .
+  --- New QidList Operators
+  op nil : -> NilQidList [ctor ditto] .
+  op __ : NilQidList NilQidList -> NilQidList [ctor ditto] .
+  op __ : SortList SortList -> SortList [ctor ditto] .
+  op __ : NeSortList SortList -> NeSortList [ctor ditto] .
+  op __ : SortList NeSortList -> NeSortList [ctor ditto] .
+  op __ : KindList KindList -> KindList [ctor ditto] .
+  op __ : NeKindList KindList -> NeKindList [ctor ditto] .
+  op __ : KindList NeKindList -> NeKindList [ctor ditto] .
+
+  --- 1.b - refine QidList by Ne/Variable/Constant/TermQidList
   sort VariableList ConstantList TermQidList .
   sort NeVariableList NeConstantList NeTermQidList .
+  --- List Functor Induced Subsorts
   subsort Variable < NeVariableList < VariableList .
   subsort Constant < NeConstantList < ConstantList .
   subsort TermQid < NeTermQidList < TermQidList .
-  subsort NilTypeList < ConstantList VariableList .
-  subsort VariableList ConstantList < TermQidList .
-  subsort NeVariableList NeConstantList < NeTermQidList .
-  subsort TermQidList < QidList .
-  subsort NeTermQidList < NeQidList .
+  --- List Functor Subsort-Induced Subsorts Set 1
+  subsort VariableList ConstantList < TermQidList < QidList  .
+  subsort NeVariableList NeConstantList < NeTermQidList < NeQidList .
+  --- Preregularity Induced Subsort
+  subsort NilQidList < ConstantList VariableList .
+  --- New QidList operators
   op __ : TermQidList TermQidList -> TermQidList [ctor ditto] .
   op __ : NeTermQidList TermQidList -> NeTermQidList [ctor ditto] .
   op __ : TermQidList NeTermQidList -> NeTermQidList [ctor ditto] .
@@ -30,17 +52,24 @@ fmod META-LEVEL-REFINEMENT is
   op __ : NeVariableList VariableList -> NeVariableList [ctor ditto] .
   op __ : VariableList NeVariableList -> NeVariableList [ctor ditto] .
 
-  --- 0.b - refine QidSet by Ne/Variable/Constant/TermQidSet
-  sort VariableSet ConstantSet TermQidSet .
+  --- NOTE: Original bottom sort EmptyTypeSet is misleading;
+  ---       renamed to EmptyQidSet; this renaming must also be
+  ---       threaded through QidListSet below
+  --- 1.c - refine QidSet by Ne/Variable/Constant/TermQidSet
+  sort EmptyQidSet VariableSet ConstantSet TermQidSet .
   sort NeVariableSet NeConstantSet NeTermQidSet .
+  --- Set Functor Induced Subsorts
   subsort Variable < NeVariableSet < VariableSet .
   subsort Constant < NeConstantSet < ConstantSet .
   subsort TermQid < NeTermQidSet < TermQidSet .
-  subsort EmptyTypeSet < ConstantSet VariableSet .
-  subsort VariableSet ConstantSet < TermQidSet .
-  subsort NeVariableSet NeConstantSet < NeTermQidSet .
-  subsort TermQidSet < QidSet .
-  subsort NeTermQidSet < NeQidSet .
+  --- Set Functor Subsort-Induced Subsorts
+  subsort VariableSet ConstantSet < TermQidSet < QidSet .
+  subsort NeVariableSet NeConstantSet < NeTermQidSet < NeQidSet .
+  --- Preregularity Induced Subsort
+  subsort EmptyQidSet < EmptyTypeSet < ConstantSet VariableSet .
+  --- New QidSet operators
+  op none : -> EmptyQidSet [ctor ditto] .
+  op _;_ : EmptyQidSet EmptyQidSet -> EmptyQidSet [ctor ditto] .
   op _;_ : TermQidSet TermQidSet -> TermQidSet [ctor ditto] .
   op _;_ : NeTermQidSet TermQidSet -> NeTermQidSet [ctor ditto] .
   op _;_ : ConstantSet ConstantSet -> ConstantSet [ctor ditto] .
@@ -48,74 +77,104 @@ fmod META-LEVEL-REFINEMENT is
   op _;_ : VariableSet VariableSet -> VariableSet [ctor ditto] .
   op _;_ : NeVariableSet VariableSet -> NeVariableSet [ctor ditto] .
 
-  --- 1.a - refine Substitution
-  sort VarAssignment ConstAssignment GroundAssignment .
-  sort NoneSubstitution VarSubstitution ConstSubstitution GroundSubstitution .
-  subsort ConstAssignment < GroundAssignment .
-  subsort VarAssignment ConstAssignment GroundAssignment < Assignment .
-  subsort NoneSubstitution < VarSubstitution ConstSubstitution GroundSubstitution < Substitution .
-  subsort ConstSubstitution < GroundSubstitution .
+  --- 1.d - refine QidListSet by Sort/Kind/ListSet
+  sort EmptyQidListSet SortListSet KindListSet QidListSet .
+  --- ListSet Functor Induced Subsorts
+  subsort SortList SortSet < SortListSet .
+  subsort KindList KindSet < KindListSet .
+  --- ListSet Functor Subsort-Induced Subsorts
+  subsort SortListSet KindListSet < TypeListSet < QidListSet .
+  --- Preregularity Induced Subsorts
+  subsort EmptyQidListSet < SortListSet KindListSet .
+  subsort NilQidList < EmptyQidListSet .
+  subsort EmptyQidSet < EmptyTypeSet < EmptyQidListSet .
+  --- New ListSet Operators
+  op _;_ : EmptyQidListSet EmptyQidListSet -> EmptyQidListSet [ctor ditto] .
+  op _;_ : SortListSet SortListSet -> SortListSet [ctor ditto] .
+  op _;_ : KindListSet KindListSet -> KindListSet [ctor ditto] .
+
+  --- 2.a - refine Ne/Term/List by Ne/Var/Ground/Non/Const/Term/List
+  sort GroundNonConstTerm NeGroundNonConstTermList GroundNonConstTermList .
+  sort NonConstTerm NeNonConstTermList NonConstTermList .
+  sort VarTermList NeVarTermList .
+  sort ConstTermList NeConstTermList .
+  --- Base Type Subsorts
+  subsort GroundNonConstTerm < NonConstTerm < Term .
+  subsort GroundNonConstTerm < GroundTerm .
+  --- List Functor Induced Subsorts
+  subsort GroundNonConstTerm < NeGroundNonConstTermList < GroundNonConstTermList .
+  subsort NonConstTerm < NeNonConstTermList < NonConstTermList .
+  subsort Variable < NeVarTermList < VarTermList .
+  subsort Constant < NeConstTermList < ConstTermList .
+  --- List Functor Subsort-Induced Subsorts Set 1
+  subsort GroundNonConstTermList < NonConstTermList < TermList .
+  subsort ConstTermList VarTermList < TermList .
+  subsort NeGroundNonConstTermList < NeNonConstTermList < NeTermList .
+  subsort NeConstTermList NeVarTermList < NeTermList .
+  --- List Functor Subsort-Induced Subsorts Set 2
+  subsort GroundNonConstTermList ConstTermList < GroundTermList .
+  subsort NeGroundNonConstTermList NeConstTermList < NeGroundTermList .
+  --- Preregularity Induced Subsorts
+  subsort EmptyCommaList < VarTermList GroundNonConstTermList NonConstTermList ConstTermList GroundTermList .
+  --- New NonConstTerm Operators
+  op _[_] : Qid NeGroundTermList -> GroundNonConstTerm [ctor ditto] .
+  op _[_] : Qid NeTermList -> NonConstTerm [ctor ditto] .
+  --- New TermList Operators
+  op _,_ : VarTermList VarTermList -> VarTermList [ctor ditto] .
+  op _,_ : NeVarTermList VarTermList -> NeVarTermList [ctor ditto] .
+  op _,_ : VarTermList NeVarTermList -> NeVarTermList [ctor ditto] .
+  op _,_ : ConstTermList ConstTermList -> ConstTermList [ctor ditto] .
+  op _,_ : NeConstTermList ConstTermList -> NeConstTermList [ctor ditto] .
+  op _,_ : ConstTermList NeConstTermList -> NeConstTermList [ctor ditto] .
+  op _,_ : GroundNonConstTermList GroundNonConstTermList -> GroundNonConstTermList [ctor ditto] .
+  op _,_ : NeGroundNonConstTermList GroundNonConstTermList -> NeGroundNonConstTermList [ctor ditto] .
+  op _,_ : GroundNonConstTermList NeGroundNonConstTermList -> NeGroundNonConstTermList [ctor ditto] .
+  op _,_ : NonConstTermList NonConstTermList -> NonConstTermList [ctor ditto] .
+  op _,_ : NeNonConstTermList NonConstTermList -> NeNonConstTermList [ctor ditto] .
+  op _,_ : NonConstTermList NeNonConstTermList -> NeNonConstTermList [ctor ditto] .
+
+  --- 2.b - refine GTermList by GTerm and NeGTermList
+  sort NonConstGTerm GTerm NeGTermList .
+  --- Base Type Subsorts
+  subsort Term Context < GTerm .
+  subsort NonConstTerm Context < NonConstGTerm < GTerm .
+  --- List Functor Induced Subsorts
+  subsort GTerm < NeGTermList < GTermList .
+  --- List Functor Subsort-Induced Subsorts
+  subsort NeCTermList NeTermList < NeGTermList .
+  op _[_] : Qid NeGTermList -> NonConstGTerm [ctor ditto] .
+  op _,_  : NeGTermList GTermList -> NeGTermList [ctor ditto] .
+  op _,_  : GTermList NeGTermList -> NeGTermList [ctor ditto] .
+
+  --- 3 - refine Substitution
+  sort VarAssignment ConstAssignment NonConstAssignment GroundNonConstAssignment GroundAssignment .
+  sort NoneSubstitution VarSubstitution ConstSubstitution NonConstSubstitution GroundNonConstSubstitution GroundSubstitution .
+  --- Substitution Functor Induced Subsorts
   subsort VarAssignment < VarSubstitution .
   subsort ConstAssignment < ConstSubstitution .
+  subsort NonConstAssignment < NonConstSubstitution .
+  subsort GroundNonConstAssignment < GroundNonConstSubstitution .
   subsort GroundAssignment < GroundSubstitution .
+  --- Substitution Functor Subsort-Induced Subsorts Set 1
+  subsort VarAssignment ConstAssignment NonConstAssignment GroundAssignment < Assignment .
+  subsort NoneSubstitution < VarSubstitution ConstSubstitution NonConstSubstitution GroundSubstitution < Substitution .
+  --- Substitution Functor Subsort-Induced Subsorts Set 2
+  subsort ConstAssignment GroundNonConstAssignment < GroundAssignment .
+  subsort ConstSubstitution GroundNonConstSubstitution < GroundSubstitution .
+  --- New Assignment Operators
   op _<-_ : Variable Variable -> VarAssignment [ctor ditto] .
   op _<-_ : Variable Constant -> ConstAssignment [ctor ditto] .
   op _<-_ : Variable GroundTerm -> GroundAssignment [ctor ditto] .
+  --- New Substitution Operators
   op none : -> NoneSubstitution [ctor ditto] .
   op _;_  : NoneSubstitution  NoneSubstitution -> NoneSubstitution [ctor ditto] .
   op _;_  : VarSubstitution    VarSubstitution -> VarSubstitution [ctor ditto] .
   op _;_  : ConstSubstitution  ConstSubstitution -> ConstSubstitution [ctor ditto] .
+  op _;_  : NonConstSubstitution  NonConstSubstitution -> NonConstSubstitution [ctor ditto] .
+  op _;_  : GroundNonConstSubstitution  GroundNonConstSubstitution -> GroundNonConstSubstitution [ctor ditto] .
   op _;_  : GroundSubstitution GroundSubstitution -> GroundSubstitution [ctor ditto] .
 
-  --- 1.b.1 - refine Ne/Term/List by Ne/NonConstant/List
-  sort GroundNonConstant NeGroundNonConstantList GroundNonConstantList .
-  sort NonConstant NeNonConstantList NonConstantList .
-  subsort GroundNonConstant < NeGroundNonConstantList < GroundNonConstantList .
-  subsort NonConstant < NeNonConstantList < NonConstantList .
-  subsort GroundNonConstant < NonConstant < Term .
-  subsort NeGroundNonConstantList < NeNonConstantList < NeTermList .
-  subsort GroundNonConstantList < NonConstantList < TermList .
-  op _[_] : Qid NeGroundTermList -> GroundNonConstant [ctor ditto] .
-  op _[_] : Qid NeTermList -> NonConstant [ctor ditto] .
-  op _,_ : GroundNonConstantList GroundNonConstantList -> GroundNonConstantList [ctor ditto] .
-  op _,_ : NeGroundNonConstantList GroundNonConstantList -> NeGroundNonConstantList [ctor ditto] .
-  op _,_ : GroundNonConstantList NeGroundNonConstantList -> NeGroundNonConstantList [ctor ditto] .
-  op _,_ : NonConstantList NonConstantList -> NonConstantList [ctor ditto] .
-  op _,_ : NeNonConstantList NonConstantList -> NeNonConstantList [ctor ditto] .
-  op _,_ : NonConstantList NeNonConstantList -> NeNonConstantList [ctor ditto] .
-
-  --- 1.b.2 - refine GTermList by GTerm and NeGTermList
-  sort GTerm NeGTermList .
-  subsort Term Context < GTerm < NeGTermList < GTermList .
-  subsort NeCTermList NeTermList < NeGTermList .
-  op _,_ : NeGTermList GTermList -> NeGTermList [ctor ditto] .
-  op _,_ : GTermList NeGTermList -> NeGTermList [ctor ditto] .
-  
-  --- 1.c - refine Ne/TypeList by Ne/Sort/Kind/List
-  sort NilTypeList NeSortList NeKindList SortList KindList .
-  subsort Sort < NeSortList < SortList .
-  subsort Kind < NeKindList < KindList .
-  subsort NeSortList NeKindList < NeTypeList .
-  subsort NilTypeList < SortList KindList < TypeList .
-  op nil : -> NilTypeList [ctor ditto] .
-  op __ : NilTypeList NilTypeList -> NilTypeList [ctor ditto] .
-  op __ : SortList SortList -> SortList [ctor ditto] .
-  op __ : NeSortList SortList -> NeSortList [ctor ditto] .
-  op __ : SortList NeSortList -> NeSortList [ctor ditto] .
-  op __ : KindList KindList -> KindList [ctor ditto] .
-  op __ : NeKindList KindList -> NeKindList [ctor ditto] .
-  op __ : KindList NeKindList -> NeKindList [ctor ditto] .
-
-  --- 1.d - refine TypeListSet by Sort/Kind/ListSet
-  sort EmptyTypeListSet SortListSet KindListSet .
-  subsort SortList SortSet < SortListSet .
-  subsort KindList KindSet < KindListSet .
-  subsort NilTypeList EmptyTypeSet < EmptyTypeListSet < SortListSet KindListSet < TypeListSet .
-  op _;_ : EmptyTypeListSet EmptyTypeListSet -> EmptyTypeListSet [ctor ditto] .
-  op _;_ : SortListSet SortListSet -> SortListSet [ctor ditto] .
-  op _;_ : KindListSet KindListSet -> KindListSet [ctor ditto] .
-
-  --- 1.e - refine OpDecl/Set into Sort/Kind/OpDecl/Set
+  --- 4 - refine OpDecl/Set into Sort/Kind/OpDecl/Set
   sort EmptyOpDeclSet SortOpDecl KindOpDecl SortOpDeclSet KindOpDeclSet .
   subsort SortOpDecl KindOpDecl < OpDecl .
   subsort SortOpDecl < SortOpDeclSet .
@@ -128,7 +187,7 @@ fmod META-LEVEL-REFINEMENT is
   op __ : SortOpDeclSet SortOpDeclSet -> SortOpDeclSet [ctor ditto] .
   op __ : KindOpDeclSet KindOpDeclSet -> KindOpDeclSet [ctor ditto] .
 
-  --- 1.f - refine Condition into Match/Memb/PureEq/Rew/Condition
+  --- 5 - refine Condition into Match/Memb/PureEq/Rew/Condition
   sort NilCondition MatchCondition MembCondition PureEqCondition RewCondition .
   subsort NilCondition < MatchCondition MembCondition PureEqCondition < EqCondition .
   subsort NilCondition < RewCondition < Condition .
@@ -143,7 +202,7 @@ fmod META-LEVEL-REFINEMENT is
   op _/\_ : MatchCondition MatchCondition -> MatchCondition [ctor ditto] .
   op _/\_ : RewCondition RewCondition -> RewCondition [ctor ditto] .
 
-  --- 1.g - refine MembAx/Set into PureEq/Cond/Uncond/MembAxSet
+  --- 6.a - refine MembAx/Set into PureEq/Cond/Uncond/MembAxSet
   sort EmptyMembAxSet PureEqCondMembAx CondMembAx UncondMembAx PureEqCondMembAxSet CondMembAxSet UncondMembAxSet .
   subsort PureEqCondMembAx < CondMembAx < MembAx .
   subsort UncondMembAx < MembAx .
@@ -161,7 +220,7 @@ fmod META-LEVEL-REFINEMENT is
   op __ : CondMembAxSet CondMembAxSet -> CondMembAxSet [ctor ditto] .
   op __ : UncondMembAxSet UncondMembAxSet -> UncondMembAxSet [ctor ditto] .
 
-  --- 1.h - refine Equation/Set into PureEq/Cond/Uncond/EquationSet
+  --- 6.b - refine Equation/Set into PureEq/Cond/Uncond/EquationSet
   sort EmptyEquationSet PureEqCondEquation CondEquation UncondEquation PureEqCondEquationSet CondEquationSet UncondEquationSet .
   subsort PureEqCondEquation < CondEquation < Equation .
   subsort UncondEquation < Equation .
@@ -179,7 +238,7 @@ fmod META-LEVEL-REFINEMENT is
   op __ : CondEquationSet CondEquationSet -> CondEquationSet [ctor ditto] .
   op __ : UncondEquationSet UncondEquationSet -> UncondEquationSet [ctor ditto] .
 
-  --- 1.i - refine Rule/Set into PureEq/Rew/Cond/Uncond/RuleSet
+  --- 6.c - refine Rule/Set into PureEq/Rew/Cond/Uncond/RuleSet
   sort EmptyRuleSet NilCondRule PureEqCondRule RewCondRule CondRule UncondRule .
   sort NilCondRuleSet PureEqCondRuleSet RewCondRuleSet CondRuleSet UncondRuleSet .
   subsort NilCondRule < PureEqCondRule RewCondRule < CondRule < Rule .
